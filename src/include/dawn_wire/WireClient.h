@@ -48,6 +48,9 @@ namespace dawn_wire {
 
         ReservedTexture ReserveTexture(DawnDevice device);
 
+        uint32_t GetId(DawnDevice device);
+        uint32_t GetId(DawnBuffer buffer);
+
       private:
         std::unique_ptr<client::Client> mImpl;
     };

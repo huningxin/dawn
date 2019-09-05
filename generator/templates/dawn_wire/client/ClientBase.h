@@ -38,7 +38,6 @@ namespace dawn_wire { namespace client {
             }
         {% endfor %}
 
-      private:
         // Implementation of the ObjectIdProvider interface
         {% for type in by_category["object"] %}
             ObjectId GetId({{as_cType(type.name)}} object) const final {

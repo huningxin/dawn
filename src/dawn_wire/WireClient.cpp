@@ -41,6 +41,14 @@ namespace dawn_wire {
         return mImpl->ReserveTexture(device);
     }
 
+    uint32_t WireClient::GetId(DawnDevice device) {
+        return mImpl->GetId(device);
+    }
+
+    uint32_t WireClient::GetId(DawnBuffer buffer) {
+        return mImpl->GetId(buffer);
+    }
+
     namespace client {
         MemoryTransferService::~MemoryTransferService() = default;
 
