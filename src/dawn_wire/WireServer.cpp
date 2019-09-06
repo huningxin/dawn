@@ -16,16 +16,22 @@
 #include "dawn_wire/server/Server.h"
 
 namespace dawn_wire {
+    static WireServer* g_wire_server;
 
     WireServer::WireServer(const WireServerDescriptor& descriptor)
         : mImpl(new server::Server(descriptor.device,
                                    *descriptor.procs,
                                    descriptor.serializer,
                                    descriptor.memoryTransferService)) {
+        g_wire_server = this;
     }
 
     WireServer::~WireServer() {
         mImpl.reset();
+    }
+
+    WireServer* WireServer::GetInstance() {
+        return g_wire_server;
     }
 
     const char* WireServer::HandleCommands(const char* commands, size_t size) {
@@ -34,6 +40,10 @@ namespace dawn_wire {
 
     bool WireServer::InjectTexture(DawnTexture texture, uint32_t id, uint32_t generation) {
         return mImpl->InjectTexture(texture, id, generation);
+    }
+
+    bool WireServer::GetFromId(uint32_t id, DawnBuffer* out) {
+        return mImpl->GetFromId(id, out) == DeserializeResult::Success;
     }
 
     namespace server {

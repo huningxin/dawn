@@ -19,12 +19,18 @@
 
 #include "dawn_native/Texture.h"
 #include "dawn_native/metal/DeviceMTL.h"
+#include "dawn_native/metal/BufferMTL.h"
 
 namespace dawn_native { namespace metal {
 
     id<MTLDevice> GetMetalDevice(DawnDevice cDevice) {
         Device* device = reinterpret_cast<Device*>(cDevice);
         return device->GetMTLDevice();
+    }
+
+    id<MTLBuffer> GetMetalBuffer(DawnBuffer cBuffer) {
+        Buffer* buffer = reinterpret_cast<Buffer*>(cBuffer);
+        return buffer->GetMTLBuffer();
     }
 
     DawnTexture WrapIOSurface(DawnDevice cDevice,

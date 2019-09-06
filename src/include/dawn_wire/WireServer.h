@@ -38,9 +38,13 @@ namespace dawn_wire {
         WireServer(const WireServerDescriptor& descriptor);
         ~WireServer();
 
+        static WireServer* GetInstance();
+
         const char* HandleCommands(const char* commands, size_t size) override final;
 
         bool InjectTexture(DawnTexture texture, uint32_t id, uint32_t generation);
+
+        bool GetFromId(uint32_t id, DawnBuffer* out);
 
       private:
         std::unique_ptr<server::Server> mImpl;

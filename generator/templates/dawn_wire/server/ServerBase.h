@@ -27,7 +27,6 @@ namespace dawn_wire { namespace server {
         ServerBase() = default;
         virtual ~ServerBase() = default;
 
-      protected:
         void DestroyAllObjects(const DawnProcTable& procs) {
             //* Free all objects when the server is destroyed
             {% for type in by_category["object"] if type.name.canonical_case() != "device" %}
@@ -58,7 +57,6 @@ namespace dawn_wire { namespace server {
             }
         {% endfor %}
 
-      private:
         // Implementation of the ObjectIdResolver interface
         {% for type in by_category["object"] %}
             DeserializeResult GetFromId(ObjectId id, {{as_cType(type.name)}}* out) const final {
