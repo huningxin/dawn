@@ -33,6 +33,11 @@ namespace dawn_native { namespace metal {
         return buffer->GetMTLBuffer();
     }
 
+    id<MTLCommandQueue> GetMetalCommandQueue(DawnDevice cDevice) {
+        Device* device = reinterpret_cast<Device*>(cDevice);
+        return device->GetMTLCommandQueue();
+    }
+
     void Tick(DawnDevice cDevice) {
         Device* device = reinterpret_cast<Device*>(cDevice);
         device->Tick();
