@@ -33,6 +33,11 @@ namespace dawn_native { namespace metal {
         return buffer->GetMTLBuffer();
     }
 
+    void Tick(DawnDevice cDevice) {
+        Device* device = reinterpret_cast<Device*>(cDevice);
+        device->Tick();
+    }
+
     DawnTexture WrapIOSurface(DawnDevice cDevice,
                               const DawnTextureDescriptor* cDescriptor,
                               IOSurfaceRef ioSurface,

@@ -31,6 +31,8 @@
 #include "dawn_native/metal/TextureMTL.h"
 #include "dawn_platform/tracing/TraceEvent.h"
 
+#include "base/logging.h"
+
 #include <type_traits>
 
 namespace dawn_native { namespace metal {
@@ -225,6 +227,7 @@ namespace dawn_native { namespace metal {
 
         TRACE_EVENT_ASYNC_BEGIN0(GetPlatform(), TRACE_DISABLED_BY_DEFAULT("gpu.dawn"),
                                  "DeviceMTL::SubmitPendingCommandBuffer", pendingSerial);
+        DLOG(INFO) << "DeviceMTL::SubmitPendingCommandBuffer commit";
         [mPendingCommands commit];
         mPendingCommands = nil;
     }

@@ -453,6 +453,7 @@ dawn_component("libdawn_native") {
   #Make headers publically visible
   public_deps = [
     ":libdawn_native_headers",
+    "//base",
   ]
 
   deps = [

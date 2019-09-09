@@ -24,6 +24,7 @@ namespace dawn_wire {
                                    descriptor.serializer,
                                    descriptor.memoryTransferService)) {
         g_wire_server = this;
+        mDevice = descriptor.device;
     }
 
     WireServer::~WireServer() {
@@ -32,6 +33,10 @@ namespace dawn_wire {
 
     WireServer* WireServer::GetInstance() {
         return g_wire_server;
+    }
+
+    DawnDevice WireServer::GetDevice() {
+        return mDevice;
     }
 
     const char* WireServer::HandleCommands(const char* commands, size_t size) {

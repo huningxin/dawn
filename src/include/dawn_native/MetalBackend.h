@@ -50,6 +50,7 @@ namespace dawn_native { namespace metal {
 namespace dawn_native { namespace metal {
     DAWN_NATIVE_EXPORT id<MTLDevice> GetMetalDevice(DawnDevice device);
     DAWN_NATIVE_EXPORT id<MTLBuffer> GetMetalBuffer(DawnBuffer buffer);
+    DAWN_NATIVE_EXPORT void Tick(DawnDevice device);
 }}      // namespace dawn_native::metal
 #endif  // __OBJC__
 

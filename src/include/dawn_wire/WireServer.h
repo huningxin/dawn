@@ -46,7 +46,10 @@ namespace dawn_wire {
 
         bool GetFromId(uint32_t id, DawnBuffer* out);
 
+        DawnDevice GetDevice();
+
       private:
+        DawnDevice mDevice;
         std::unique_ptr<server::Server> mImpl;
     };
 

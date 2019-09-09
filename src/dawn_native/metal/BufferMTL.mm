@@ -14,6 +14,8 @@
 
 #include "dawn_native/metal/BufferMTL.h"
 
+#include "base/logging.h"
+
 #include "dawn_native/metal/DeviceMTL.h"
 
 namespace dawn_native { namespace metal {
@@ -28,6 +30,8 @@ namespace dawn_native { namespace metal {
         }
 
         mMtlBuffer = [device->GetMTLDevice() newBufferWithLength:GetSize() options:storageMode];
+
+        DLOG(INFO) << "create mtl buffer " << mMtlBuffer << " size " << GetSize() << " mode " << storageMode;
     }
 
     Buffer::~Buffer() {
