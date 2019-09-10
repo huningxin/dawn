@@ -26,6 +26,8 @@
 #include "dawn_native/metal/SamplerMTL.h"
 #include "dawn_native/metal/TextureMTL.h"
 
+#include "base/logging.h"
+
 namespace dawn_native { namespace metal {
 
     struct GlobalEncoders {
@@ -584,6 +586,29 @@ namespace dawn_native { namespace metal {
                     encoders.Finish();
                     MTLRenderPassDescriptor* descriptor = CreateMTLRenderPassDescriptor(cmd);
                     EncodeRenderPass(commandBuffer, descriptor, &encoders, cmd->width, cmd->height);
+                } break;
+
+                case Command::SetNnGraphInput: {
+                    SetNnGraphInputCmd* cmd = mCommands.NextCommand<SetNnGraphInputCmd>();
+                    DLOG(INFO) << "SetNnGraphInput mtlbuffer: " << ToBackend(cmd->buffer)->GetMTLBuffer()
+                               << " index: " << cmd->index << " graph id: " << cmd->graph;
+
+                    // Set input to nn graph
+                } break;
+
+                case Command::SetNnGraphOutput: {
+                    SetNnGraphOutputCmd* cmd = mCommands.NextCommand<SetNnGraphOutputCmd>();
+                    DLOG(INFO) << "SetNnGraphOutput mtlbuffer: " << ToBackend(cmd->buffer)->GetMTLBuffer()
+                               << " index: " << cmd->index << " graph id: " << cmd->graph;
+
+                    // Set output to nn graph
+                } break;
+
+                case Command::ExecuteNnGraph: {
+                    ExecuteNnGraphCmd* cmd = mCommands.NextCommand<ExecuteNnGraphCmd>();
+                    DLOG(INFO) << "ExecuteNnGraph graph id: " << cmd->graph;
+
+                    // encode the nn graph into command buffer
                 } break;
 
                 case Command::CopyBufferToBuffer: {

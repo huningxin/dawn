@@ -43,6 +43,13 @@ namespace dawn_native {
                                 BufferBase* destination,
                                 uint64_t destinationOffset,
                                 uint64_t size);
+        void SetNnGraphInput(BufferBase* buffer,
+                             uint32_t index,
+                             uint32_t graph);
+        void SetNnGraphOutput(BufferBase* buffer,
+                              uint32_t index,
+                              uint32_t graph);
+        void ExecuteNnGraph(uint32_t graph);
         void CopyBufferToTexture(const BufferCopyView* source,
                                  const TextureCopyView* destination,
                                  const Extent3D* copySize);

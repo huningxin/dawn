@@ -14,6 +14,7 @@
 
 #include "dawn_native/CommandEncoder.h"
 
+#include "base/logging.h"
 #include "common/BitSetIterator.h"
 #include "dawn_native/BindGroup.h"
 #include "dawn_native/Buffer.h"
@@ -580,6 +581,52 @@ namespace dawn_native {
         });
     }
 
+    void CommandEncoderBase::SetNnGraphInput(BufferBase* buffer,
+                                             uint32_t index,
+                                             uint32_t graph) {
+        mEncodingContext.TryEncode(this, [&](CommandAllocator* allocator) -> MaybeError {
+            DAWN_TRY(GetDevice()->ValidateObject(buffer));
+
+            SetNnGraphInputCmd* cmd =
+                allocator->Allocate<SetNnGraphInputCmd>(Command::SetNnGraphInput);
+            cmd->buffer = buffer;
+            cmd->index = index;
+            cmd->graph = graph;
+
+            return {};
+        });
+        return;
+    }
+    
+    void CommandEncoderBase::SetNnGraphOutput(BufferBase* buffer,
+                                              uint32_t index,
+                                              uint32_t graph) {
+        mEncodingContext.TryEncode(this, [&](CommandAllocator* allocator) -> MaybeError {
+            DAWN_TRY(GetDevice()->ValidateObject(buffer));
+
+            SetNnGraphOutputCmd* cmd =
+                allocator->Allocate<SetNnGraphOutputCmd>(Command::SetNnGraphOutput);
+            cmd->buffer = buffer;
+            cmd->index = index;
+            cmd->graph = graph;
+            
+            return {};
+        });
+        return;
+    }
+    
+    void CommandEncoderBase::ExecuteNnGraph(uint32_t graph) {
+        mEncodingContext.TryEncode(this, [&](CommandAllocator* allocator) -> MaybeError {
+            
+            ExecuteNnGraphCmd* cmd =
+                allocator->Allocate<ExecuteNnGraphCmd>(Command::ExecuteNnGraph);
+            cmd->graph = graph;
+            
+            return {};
+        });
+        return;
+    }
+
     void CommandEncoderBase::CopyBufferToTexture(const BufferCopyView* source,
                                                  const TextureCopyView* destination,
                                                  const Extent3D* copySize) {
@@ -721,6 +768,22 @@ namespace dawn_native {
 
                     mResourceUsages.topLevelBuffers.insert(copy->source.Get());
                     mResourceUsages.topLevelBuffers.insert(copy->destination.Get());
+                } break;
+
+                case Command::SetNnGraphInput: {
+                    SetNnGraphInputCmd* set = commands->NextCommand<SetNnGraphInputCmd>();
+
+                    mResourceUsages.topLevelBuffers.insert(set->buffer.Get());
+                } break;
+
+                case Command::SetNnGraphOutput: {
+                    SetNnGraphOutputCmd* set = commands->NextCommand<SetNnGraphOutputCmd>();
+
+                    mResourceUsages.topLevelBuffers.insert(set->buffer.Get());
+                } break;
+
+                case Command::ExecuteNnGraph: {
+                    commands->NextCommand<ExecuteNnGraphCmd>();
                 } break;
 
                 case Command::CopyBufferToTexture: {

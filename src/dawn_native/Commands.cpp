@@ -42,6 +42,18 @@ namespace dawn_native {
                     CopyBufferToBufferCmd* copy = commands->NextCommand<CopyBufferToBufferCmd>();
                     copy->~CopyBufferToBufferCmd();
                 } break;
+                case Command::SetNnGraphInput: {
+                    SetNnGraphInputCmd* set = commands->NextCommand<SetNnGraphInputCmd>();
+                    set->~SetNnGraphInputCmd();
+                } break;
+                case Command::SetNnGraphOutput: {
+                    SetNnGraphOutputCmd* set = commands->NextCommand<SetNnGraphOutputCmd>();
+                    set->~SetNnGraphOutputCmd();
+                } break;
+                case Command::ExecuteNnGraph: {
+                    ExecuteNnGraphCmd* exe = commands->NextCommand<ExecuteNnGraphCmd>();
+                    exe->~ExecuteNnGraphCmd();
+                } break;
                 case Command::CopyBufferToTexture: {
                     CopyBufferToTextureCmd* copy = commands->NextCommand<CopyBufferToTextureCmd>();
                     copy->~CopyBufferToTextureCmd();
@@ -170,6 +182,18 @@ namespace dawn_native {
 
             case Command::CopyBufferToBuffer:
                 commands->NextCommand<CopyBufferToBufferCmd>();
+                break;
+            
+            case Command::SetNnGraphInput:
+                commands->NextCommand<SetNnGraphInputCmd>();
+                break;
+            
+            case Command::SetNnGraphOutput:
+                commands->NextCommand<SetNnGraphOutputCmd>();
+                break;
+            
+            case Command::ExecuteNnGraph:
+                commands->NextCommand<ExecuteNnGraphCmd>();
                 break;
 
             case Command::CopyBufferToTexture:
