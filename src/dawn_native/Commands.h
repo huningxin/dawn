@@ -59,6 +59,25 @@ namespace dawn_native {
         SetBindGroup,
         SetIndexBuffer,
         SetVertexBuffer,
+        SetNnGraphInput,
+        SetNnGraphOutput,
+        ExecuteNnGraph
+    };
+
+    struct SetNnGraphInputCmd {
+        Ref<BufferBase> buffer;
+        uint32_t index;
+        uint32_t graph;
+    };
+
+    struct SetNnGraphOutputCmd {
+        Ref<BufferBase> buffer;
+        uint32_t index;
+        uint32_t graph;
+    };
+
+    struct ExecuteNnGraphCmd {
+        uint32_t graph;
     };
 
     struct BeginComputePassCmd {};

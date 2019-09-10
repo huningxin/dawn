@@ -297,6 +297,28 @@
                 ]
             },
             {
+                "name": "set nn graph input",
+                "args": [
+                    {"name": "buffer", "type": "buffer"},
+                    {"name": "index", "type": "uint32_t"},
+                    {"name": "graph", "type": "uint32_t"}
+                ]
+            },
+            {
+                "name": "set nn graph output",
+                "args": [
+                    {"name": "buffer", "type": "buffer"},
+                    {"name": "index", "type": "uint32_t"},
+                    {"name": "graph", "type": "uint32_t"}
+                ]
+            },
+            {
+                "name": "execute nn graph",
+                "args": [
+                    {"name": "graph", "type": "uint32_t"}
+                ]
+            },
+            {
                 "name": "copy buffer to texture",
                 "args": [
                     {"name": "source", "type": "buffer copy view", "annotation": "const*"},
