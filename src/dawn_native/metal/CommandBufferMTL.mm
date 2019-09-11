@@ -26,6 +26,8 @@
 #include "dawn_native/metal/SamplerMTL.h"
 #include "dawn_native/metal/TextureMTL.h"
 
+#include "services/ml/execution_impl_mac_mps.h"
+
 #include "base/logging.h"
 
 namespace dawn_native { namespace metal {
@@ -594,6 +596,9 @@ namespace dawn_native { namespace metal {
                                << " index: " << cmd->index << " graph id: " << cmd->graph;
 
                     // Set input to nn graph
+                    ml::ExecutionImplMacMPS* nnGraph = ml::ExecutionImplMacMPS::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->setInputMtlBuffer(ToBackend(cmd->buffer)->GetMTLBuffer(), cmd->index);
                 } break;
 
                 case Command::SetNnGraphOutput: {
@@ -602,6 +607,9 @@ namespace dawn_native { namespace metal {
                                << " index: " << cmd->index << " graph id: " << cmd->graph;
 
                     // Set output to nn graph
+                    ml::ExecutionImplMacMPS* nnGraph = ml::ExecutionImplMacMPS::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->setOutputMtlBuffer(ToBackend(cmd->buffer)->GetMTLBuffer(), cmd->index);
                 } break;
 
                 case Command::ExecuteNnGraph: {
@@ -609,6 +617,9 @@ namespace dawn_native { namespace metal {
                     DLOG(INFO) << "ExecuteNnGraph graph id: " << cmd->graph;
 
                     // encode the nn graph into command buffer
+                    ml::ExecutionImplMacMPS* nnGraph = ml::ExecutionImplMacMPS::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->encodeToCommandBuffer(commandBuffer);
                 } break;
 
                 case Command::CopyBufferToBuffer: {
