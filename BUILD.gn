@@ -511,6 +511,8 @@ dawn_component("libdawn_native") {
   deps = [
     ":libdawn_native_sources",
     "${dawn_root}/src/common",
+    "//base",
+    "//services//ml:lib"
   ]
   sources = [
     "src/dawn_native/DawnNative.cpp",
