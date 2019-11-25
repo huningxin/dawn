@@ -36,6 +36,9 @@
 
 #include <deque>
 
+#include "services/ml/execution_impl_dml.h"
+#include "base/logging.h"
+
 namespace dawn_native { namespace d3d12 {
 
     namespace {
@@ -666,6 +669,33 @@ namespace dawn_native { namespace d3d12 {
                                      beginRenderPassCmd);
 
                     nextPassNumber++;
+                } break;
+
+                case Command::SetNnGraphInput: {
+                    SetNnGraphInputCmd* cmd = mCommands.NextCommand<SetNnGraphInputCmd>();
+                    DLOG(INFO) << "SetNnGraphInput d3d12resource: " << ToBackend(cmd->buffer)->GetD3D12Resource().Get()
+                               << " index: " << cmd->index << " graph id: " << cmd->graph;
+                    ml::ExecutionImplDML* nnGraph = ml::ExecutionImplDML::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->setInputD3D12Resource(ToBackend(cmd->buffer)->GetD3D12Resource(), cmd->index);
+                } break;
+
+                case Command::SetNnGraphOutput: {
+                    SetNnGraphOutputCmd* cmd = mCommands.NextCommand<SetNnGraphOutputCmd>();
+                    DLOG(INFO) << "SetNnGraphOutput d3d12resource: " << ToBackend(cmd->buffer)->GetD3D12Resource().Get()
+                               << " index: " << cmd->index << " graph id: " << cmd->graph;
+                    ml::ExecutionImplDML* nnGraph = ml::ExecutionImplDML::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->setOutputD3D12Resource(ToBackend(cmd->buffer)->GetD3D12Resource(), cmd->index);
+                } break;
+
+                case Command::ExecuteNnGraph: {
+                    ExecuteNnGraphCmd* cmd = mCommands.NextCommand<ExecuteNnGraphCmd>();
+                    DLOG(INFO) << "ExecuteNnGraph graph id: " << cmd->graph;
+                    // encode the nn graph into command list
+                    ml::ExecutionImplDML* nnGraph = ml::ExecutionImplDML::getInstance(cmd->graph);
+                    DCHECK(nnGraph);
+                    nnGraph->encodeToCommandList(commandList);
                 } break;
 
                 case Command::CopyBufferToBuffer: {
