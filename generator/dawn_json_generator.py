@@ -481,6 +481,7 @@ def compute_wire_params(api_params, wire_json):
         for method in api_object.methods:
             command_name = concat_names(api_object.name, method.name)
             command_suffix = Name(command_name).CamelCase()
+            print(command_suffix)
 
             # Only object return values or void are supported.
             # Other methods must be handwritten.
@@ -490,7 +491,8 @@ def compute_wire_params(api_params, wire_json):
                 assert command_suffix in (
                     wire_json['special items']['client_handwritten_commands'])
                 continue
-
+            
+            print('-------')
             if command_suffix in (
                     wire_json['special items']['client_side_commands']):
                 continue
@@ -513,6 +515,7 @@ def compute_wire_params(api_params, wire_json):
                 members.append(result)
 
             command = Command(command_name, members)
+            print(command.name.CamelCase())
             command.derived_object = api_object
             command.derived_method = method
             commands.append(command)

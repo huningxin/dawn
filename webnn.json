@@ -1,0 +1,890 @@
+{
+  "_comment": [
+    "Copyright 2017 The Dawn Authors",
+    "Copyright 2021 The WebNN-native Authors",
+    "",
+    "Licensed under the Apache License, Version 2.0 (the \"License\");",
+    "you may not use this file except in compliance with the License.",
+    "You may obtain a copy of the License at",
+    "",
+    "    http://www.apache.org/licenses/LICENSE-2.0",
+    "",
+    "Unless required by applicable law or agreed to in writing, software",
+    "distributed under the License is distributed on an \"AS IS\" BASIS,",
+    "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+    "See the License for the specific language governing permissions and",
+    "limitations under the License."
+  ],
+  "error type": {
+    "category": "enum",
+    "values": [
+        {"value": 0, "name": "no error"},
+        {"value": 1, "name": "validation"},
+        {"value": 2, "name": "out of memory"},
+        {"value": 3, "name": "unknown"},
+        {"value": 4, "name": "device lost"}
+    ]
+  },
+  "char": {
+    "category": "native"
+  },
+  "void": {
+    "category": "native"
+  },
+  "const void*": {
+    "category": "native"
+  },
+  "uint32_t": {
+    "category": "native"
+  },
+  "const uint32_t*": {
+    "category": "native"
+  },
+  "const int32_t*": {
+    "category": "native"
+  },
+  "int32_t": {
+    "category": "native"
+  },
+  "float": {
+    "category": "native"
+  },
+  "size_t": {
+    "category": "native"
+  },
+  "bool": {
+    "category": "native"
+  },
+  "error filter": {
+    "category": "enum",
+    "values": [
+        {"value": 0, "name": "none"},
+        {"value": 1, "name": "validation"},
+        {"value": 2, "name": "out of memory"}
+    ]
+  },
+  "error callback": {
+    "category": "callback",
+    "args": [
+        {"name": "type", "type": "error type"},
+        {"name": "message", "type": "char", "annotation": "const*"},
+        {"name": "userdata", "type": "void", "annotation": "*"}
+    ]
+  },
+  "device preference": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "default"},
+      {"value": 1, "name": "gpu"},
+      {"value": 2, "name": "cpu"}
+    ]
+  },
+  "power preference": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "default"},
+      {"value": 1, "name": "high_performance"},
+      {"value": 2, "name": "low_power"}
+    ]
+  },
+  "context options": {
+    "category": "structure",
+    "members": [
+      {"name": "device preference", "type": "device preference", "default": "default"},
+      {"name": "power preference", "type": "power preference", "default": "default"}
+    ]
+  },
+  "context": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "set uncaptured error callback",
+        "args": [
+            {"name": "callback", "type": "error callback"},
+            {"name": "userdata", "type": "void", "annotation": "*"}
+        ]
+      },
+      {
+          "name": "push error scope",
+          "args": [
+              {"name": "filter", "type": "error filter"}
+          ]
+      },
+      {
+          "name": "pop error scope",
+          "returns": "bool",
+          "args": [
+              {"name": "callback", "type": "error callback"},
+              {"name": "userdata", "type": "void", "annotation": "*"}
+          ]
+      }
+    ]
+  },
+  "operand type": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "float32"},
+      {"value": 1, "name": "float16"},
+      {"value": 2, "name": "int32"},
+      {"value": 3, "name": "uint32"},
+      {"value": 4, "name": "int8"},
+      {"value": 5, "name": "uint8"}
+    ]
+  },
+  "operand descriptor": {
+    "category": "structure",
+    "members": [
+      {"name": "type", "type": "operand type"},
+      {"name": "dimensions", "type": "int32_t", "annotation": "const*", "length": "dimensions count"},
+      {"name": "dimensions count", "type": "uint32_t", "default": 0}
+    ]
+  },
+  "operand": {
+    "category": "object"
+  },
+  "operator": {
+    "category": "object"
+  },
+  "named operands": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "set",
+        "args": [
+          {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+          {"name": "operand", "type": "operand"}
+        ]
+      }
+    ]
+  },
+  "operand array": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "size",
+        "returns": "size_t"
+      },
+      {
+        "name": "get",
+        "returns": "operand",
+        "args": [
+          {"name": "index", "type": "size_t"}
+        ]
+      }
+    ]
+  },
+  "operator array": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "size",
+        "returns": "size_t"
+      },
+      {
+        "name": "set",
+        "returns": "void",
+        "args": [
+          {"name": "operator", "type": "operator"}
+        ]
+      },
+      {
+        "name": "get",
+        "returns": "operator",
+        "args": [
+          {"name": "index", "type": "size_t"}
+        ]
+      }
+    ]
+  },
+  "input operand layout": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "nchw"},
+      {"value": 1, "name": "nhwc"}
+    ]
+  },
+  "filter operand layout": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "oihw"},
+      {"value": 1, "name": "hwio"},
+      {"value": 2, "name": "ohwi"},
+      {"value": 3, "name": "ihwo"}
+    ]
+  },
+  "auto pad": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "explicit"},
+      {"value": 1, "name": "same upper"},
+      {"value": 2, "name": "same lower"}
+    ]
+  },
+  "padding mode": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "constant"},
+      {"value": 1, "name": "edge"},
+      {"value": 2, "name": "reflection"},
+      {"value": 3, "name": "symmetric"}
+    ]
+  },
+  "interpolation mode": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "nearest neighbor"},
+      {"value": 1, "name": "linear"}
+    ]
+  },
+  "recurrent network weight layout": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "zrn"},
+      {"value": 1, "name": "rzn"}
+    ]
+  },
+  "recurrent network direction": {
+    "category": "enum",
+    "values": [
+      {"value": 0, "name": "forward"},
+      {"value": 1, "name": "backward"},
+      {"value": 2, "name": "both"}
+    ]
+  },
+  "clamp options": {
+    "category": "structure",
+    "members": [
+      {"name": "min value", "type": "float", "default": "std::numeric_limits<float>::lowest()"},
+      {"name": "max value", "type": "float", "default": "std::numeric_limits<float>::max()"}
+    ]
+  },
+  "conv2d options": {
+    "category": "structure",
+    "members": [
+      {"name": "padding count", "type": "uint32_t", "default": 0},
+      {"name": "padding", "type": "int32_t", "annotation": "const*", "length": "padding count", "optional": true},
+      {"name": "strides count", "type": "uint32_t", "default": 0},
+      {"name": "strides", "type": "int32_t", "annotation": "const*", "length": "strides count", "optional": true},
+      {"name": "dilations count", "type": "uint32_t", "default": 0},
+      {"name": "dilations", "type": "int32_t", "annotation": "const*", "length": "dilations count", "optional": true},
+      {"name": "output padding count", "type": "uint32_t", "default": 0},
+      {"name": "output padding", "type": "int32_t", "annotation": "const*", "length": "output padding count", "optional": true},
+      {"name": "output sizes count", "type": "uint32_t", "default": 0},
+      {"name": "output sizes", "type": "int32_t", "annotation": "const*", "length": "output sizes count", "optional": true},
+      {"name": "auto pad", "type": "auto pad", "default": "explicit"},
+      {"name": "transpose", "type": "bool", "default": "false"},
+      {"name": "groups", "type": "int32_t", "default": 1},
+      {"name": "input layout", "type": "input operand layout", "default": "nchw"},
+      {"name": "filter layout", "type": "filter operand layout", "default": "oihw"},
+      {"name": "bias", "type": "operand", "optional": true},
+      {"name": "activation", "type": "operator", "optional": true}
+    ]
+  },
+  "slice options": {
+    "category": "structure",
+    "members": [
+      {"name": "axes count", "type": "uint32_t", "default": 0},
+      {"name": "axes", "type": "int32_t", "annotation": "const*", "length": "axes count", "optional": true}
+    ]
+  },
+  "gru options": {
+    "category": "structure",
+    "members": [
+      {"name": "bias", "type": "operand", "optional": true},
+      {"name": "recurrent bias", "type": "operand", "optional": true},
+      {"name": "initial hidden state", "type": "operand", "optional": true},
+      {"name": "reset after", "type": "bool", "default": "true"},
+      {"name": "return sequence", "type": "bool", "default": "false"},
+      {"name": "direction", "type": "recurrent network direction", "default": "forward"},
+      {"name": "layout", "type": "recurrent network weight layout", "default": "zrn"},
+      {"name": "activations", "type": "operator array", "optional": true}
+    ]
+  },
+  "pad options": {
+    "category": "structure",
+    "members": [
+      {"name": "mode", "type": "padding mode", "default": "constant"},
+      {"name": "value", "type": "float", "default": 0}
+    ]
+  },
+  "pool2d options": {
+    "category": "structure",
+    "members": [
+      {"name": "window dimensions count", "type": "uint32_t", "default": 0},
+      {"name": "window dimensions", "type": "int32_t", "annotation": "const*", "length": "window dimensions count", "optional": true},
+      {"name": "padding count", "type": "uint32_t", "default": 0},
+      {"name": "padding", "type": "int32_t", "annotation": "const*", "length": "padding count", "optional": true},
+      {"name": "strides count", "type": "uint32_t", "default": 0},
+      {"name": "strides", "type": "int32_t", "annotation": "const*", "length": "strides count", "optional": true},
+      {"name": "dilations count", "type": "uint32_t", "default": 0},
+      {"name": "dilations", "type": "int32_t", "annotation": "const*", "length": "dilations count", "optional": true},
+      {"name": "auto pad", "type": "auto pad", "default": "explicit"},
+      {"name": "layout", "type": "input operand layout", "default": "nchw"}
+    ]
+  },
+  "gemm options": {
+    "category": "structure",
+    "members": [
+      {"name": "c", "type": "operand", "optional": true},
+      {"name": "alpha", "type": "float", "default": 1.0},
+      {"name": "beta", "type": "float", "default": 1.0},
+      {"name": "aTranspose", "type": "bool", "default": "false"},
+      {"name": "bTranspose", "type": "bool", "default": "false"}
+    ]
+  },
+  "leakyRelu options": {
+    "category": "structure",
+    "members": [
+      {"name": "alpha", "type": "float", "default": 0.01}
+    ]
+  },
+  "reduce options": {
+    "category": "structure",
+    "members": [
+      {"name": "axes count", "type": "uint32_t", "default": 0},
+      {"name": "axes", "type": "int32_t", "annotation": "const*", "length": "axes count","optional": true},
+      {"name": "keepDimensions", "type": "bool", "default": "false"}
+    ]
+  },
+  "resample options": {
+    "category": "structure",
+    "members": [
+      {"name": "mode", "type": "interpolation mode", "default": "nearest neighbor"},
+      {"name": "scales count", "type": "uint32_t", "default": 0},
+      {"name": "scales", "type": "float", "annotation": "const*", "length": "scales count", "optional": true},
+      {"name": "sizes count", "type": "uint32_t", "default": 0},
+      {"name": "sizes", "type": "int32_t", "annotation": "const*", "length": "sizes count", "optional": true}
+    ]
+  },
+  "split options": {
+    "category": "structure",
+    "members": [
+      {"name": "axis", "type": "int32_t", "default": 0}
+    ]
+  },
+  "squeeze options": {
+    "category": "structure",
+    "members": [
+      {"name": "axes count", "type": "uint32_t", "default": 0},
+      {"name": "axes", "type": "int32_t", "annotation": "const*", "length": "axes count", "optional": true}
+    ]
+  },
+  "transpose options": {
+    "category": "structure",
+    "members": [
+      {"name": "permutation count", "type": "uint32_t", "default": 0},
+      {"name": "permutation", "type": "int32_t", "annotation": "const*", "length": "permutation count", "optional": true}
+    ]
+  },
+  "batchNorm options": {
+    "category": "structure",
+    "members": [
+      {"name": "scale", "type": "operand", "optional": true},
+      {"name": "bias", "type": "operand", "optional": true},
+      {"name": "axis", "type": "uint32_t", "default": 1},
+      {"name": "epsilon", "type": "float", "default": 1e-5},
+      {"name": "activation", "type": "operator", "optional": true}
+    ]
+  },
+  "instanceNorm options": {
+  "category": "structure",
+    "members": [
+      {"name": "scale", "type": "operand", "optional": true},
+      {"name": "bias", "type": "operand", "optional": true},
+      {"name": "epsilon", "type": "float", "default": 1e-5},
+      {"name": "layout", "type": "input operand layout", "default": "nchw"}
+    ]
+  },
+  "graph builder": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "input",
+        "returns": "operand",
+        "args": [
+          {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+          {"name": "desc", "type": "operand descriptor", "annotation": "const*"}
+        ]
+      },
+      {
+        "name": "constant",
+        "returns": "operand",
+        "args": [
+          {"name": "desc", "type": "operand descriptor", "annotation": "const*"},
+          {"name": "value", "type": "array buffer view", "annotation": "const*"}
+        ]
+      },
+      {
+        "name": "matmul",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "add",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "div",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "mul",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "sub",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "max",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "min",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "pow",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"}
+        ]
+      },
+      {
+        "name": "conv2d",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "filter", "type": "operand"},
+          {"name": "options", "type": "conv2d options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "gru",
+        "returns": "operand array",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "weight", "type": "operand"},
+          {"name": "recurrentWeight", "type": "operand"},
+          {"name": "steps", "type": "int32_t"},
+          {"name": "hiddenSize", "type": "int32_t"},
+          {"name": "options", "type": "gru options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "average pool2d",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "pool2d options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "abs",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "ceil",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "cos",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "exp",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "floor",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "log",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "neg",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "sin",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "tan",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "hard swish",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "hard swish operator",
+        "returns": "operator"
+      },
+      {
+        "name": "gemm",
+        "returns": "operand",
+        "args": [
+          {"name": "a", "type": "operand"},
+          {"name": "b", "type": "operand"},
+          {"name": "options", "type": "gemm options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "leaky relu",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "leakyRelu options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "leaky relu operator",
+        "returns": "operator",
+        "args": [
+          {"name": "options", "type": "leakyRelu options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "max pool2d",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "pool2d options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+      "name": "pad",
+      "returns": "operand",
+      "args": [
+        {"name": "input", "type": "operand"},
+        {"name": "padding", "type": "operand"},
+        {"name": "options", "type": "pad options", "annotation": "const*", "optional": true}
+      ]
+      },
+      {
+        "name": "reduce l1",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce l2",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce max",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce mean",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce min",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce product",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "reduce sum",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "resample",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+         {"name": "options", "type": "resample options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "relu",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "relu operator",
+        "returns": "operator"
+      },
+      {
+        "name": "reshape",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "new shape", "type": "int32_t", "annotation": "const*", "length": "new shape count"},
+          {"name": "new shape count", "type": "uint32_t"}
+        ]
+      },
+      {
+        "name": "sigmoid",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "sigmoid operator",
+        "returns": "operator"
+      },
+      {
+        "name": "slice",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "starts", "type": "int32_t", "annotation": "const*", "length": "starts count"},
+          {"name": "starts count", "type": "uint32_t"},
+          {"name": "sizes", "type": "int32_t", "annotation": "const*", "length": "sizes count"},
+          {"name": "sizes count", "type": "uint32_t"},
+          {"name": "options", "type": "slice options", "annotation": "const*", "optional": true}
+        ]
+
+      },
+      {
+        "name": "split",
+        "returns": "operand array",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "splits", "type": "uint32_t", "annotation": "const*", "length": "splits count"},
+          {"name": "splits count", "type": "uint32_t"},
+          {"name": "options", "type": "split options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "squeeze",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "squeeze options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "softmax",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "tanh",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"}
+        ]
+      },
+      {
+        "name": "tanh operator",
+        "returns": "operator"
+      },
+      {
+        "name": "transpose",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "transpose options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "concat",
+        "returns": "operand",
+        "args": [
+          {"name": "inputs count", "type": "uint32_t"},
+          {"name": "inputs", "type": "operand", "annotation": "const*", "length": "inputs count"},
+          {"name": "axis", "type": "uint32_t"}
+        ]
+      },
+      {
+        "name": "clamp",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "clamp options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "clamp operator",
+        "returns": "operator",
+        "args": [
+          {"name": "options", "type": "clamp options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "batch norm",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "mean", "type": "operand"},
+          {"name": "variance", "type": "operand"},
+          {"name": "options", "type": "batchNorm options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "instance norm",
+        "returns": "operand",
+        "args": [
+          {"name": "input", "type": "operand"},
+          {"name": "options", "type": "instanceNorm options", "annotation": "const*", "optional": true}
+        ]
+      },
+      {
+        "name": "build",
+        "returns": "graph",
+        "args": [
+          {"name": "named operands", "type": "named operands"}
+        ]
+      }
+    ]
+  },
+  "input": {
+    "category": "structure",
+    "members": [
+      {"name": "resource", "type": "array buffer view"},
+      {"name": "dimensions", "type": "int32_t", "annotation": "const*", "length": "dimensions count", "optional": true},
+      {"name": "dimensions count", "type": "uint32_t", "default": 0}
+    ]
+  },
+  "array buffer view": {
+    "category": "structure",
+    "members": [
+      {"name": "buffer", "type": "void", "annotation": "*", "length": "byte length"},
+      {"name": "byte length", "type": "size_t"},
+      {"name": "byte offset", "type": "size_t", "default": 0}
+    ]
+  },
+  "named inputs": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "set",
+        "args": [
+          {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+          {"name": "input", "type": "input", "annotation": "const*"}
+        ]
+      }
+    ]
+  },
+  "named outputs": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "set",
+        "args": [
+          {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+          {"name": "resource", "type": "array buffer view", "annotation": "const*"}
+        ]
+      }
+    ]
+  },
+  "compute graph status": {
+    "category": "enum",
+    "values": [
+        {"value": 0, "name": "success"},
+        {"value": 1, "name": "error"},
+        {"value": 2, "name": "context lost"},
+        {"value": 3, "name": "unknown"}
+    ]
+  },
+  "graph": {
+    "category": "object",
+    "methods": [
+      {
+        "name": "compute",
+        "returns": "compute graph status",
+        "args": [
+          {"name": "inputs", "type": "named inputs"},
+          {"name": "outputs", "type": "named outputs"}
+        ]
+      }
+    ]
+  }
+}

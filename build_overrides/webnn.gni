@@ -1,4 +1,4 @@
-# Copyright 2018 The Dawn Authors
+# Copyright 2021 The WebNN-native Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,27 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("scripts/dawn_overrides_with_defaults.gni")
-
-group("all") {
-  testonly = true
-  deps = [
-    "src/dawn_native:webgpu_dawn",
-    "src/fuzzers:dawn_fuzzers",
-    "src/tests:dawn_tests",
-  ]
-  if (dawn_standalone) {
-    deps += [ "examples:dawn_samples" ]
-  }
-  if (webnn_standalone) {
-    deps += [
-      "src/tests/webnn:webnn_tests",
-    ]
-  }
-}
-
-# This target is built when no specific target is specified on the command line.
-group("default") {
-  testonly = true
-  deps = [ ":all" ]
-}
+webnn_standalone = true

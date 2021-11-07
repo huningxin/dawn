@@ -24,6 +24,10 @@ if (!defined(dawn_standalone)) {
   dawn_standalone = false
 }
 
+if (!defined(webnn_standalone)) {
+  webnn_standalone = false
+}
+
 if (!defined(dawn_has_build)) {
   dawn_has_build = true
 }
