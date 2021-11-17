@@ -149,6 +149,18 @@ class TypedefType(Type):
         self.type = None
 
 
+class FunctionType(Type):
+    def __init__(self, is_enabled, name, json_data):
+        Type.__init__(self, name, json_data)
+        self.method = 0
+
+
+class DefineType(Type):
+    def __init__(self, is_enabled, name, json_data):
+        Type.__init__(self, name, json_data)
+        self.value = 0
+
+
 class NativeType(Type):
     def __init__(self, is_enabled, name, json_data):
         Type.__init__(self, name, json_data, native=True)
@@ -314,6 +326,14 @@ def linked_record_members(json_data, types):
 ############################################################
 
 
+def link_metadata(json_data):
+    return {
+            'target_api': json_data['target_api'],
+            'c_prefix': json_data['c_prefix'],
+            'cpp_namespace': json_data['cpp_namespace']
+    }
+
+
 def link_object(obj, types):
     def make_method(json_data):
         arguments = linked_record_members(json_data.get('args', []), types)
@@ -410,7 +430,10 @@ def parse_json(json, enabled_tags):
     for name in category_to_parser.keys():
         by_category[name] = []
 
+    metadata = {}
     for (name, json_data) in json.items():
+        if name == '_metadata' :
+            metadata = link_metadata(json_data)
         if name[0] == '_' or not item_is_enabled(enabled_tags, json_data):
             continue
         category = json_data['category']
@@ -481,7 +504,6 @@ def compute_wire_params(api_params, wire_json):
         for method in api_object.methods:
             command_name = concat_names(api_object.name, method.name)
             command_suffix = Name(command_name).CamelCase()
-            print(command_suffix)
 
             # Only object return values or void are supported.
             # Other methods must be handwritten.
@@ -492,7 +514,6 @@ def compute_wire_params(api_params, wire_json):
                     wire_json['special items']['client_handwritten_commands'])
                 continue
             
-            print('-------')
             if command_suffix in (
                     wire_json['special items']['client_side_commands']):
                 continue
@@ -515,7 +536,6 @@ def compute_wire_params(api_params, wire_json):
                 members.append(result)
 
             command = Command(command_name, members)
-            print(command.name.CamelCase())
             command.derived_object = api_object
             command.derived_method = method
             commands.append(command)
