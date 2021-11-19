@@ -92,7 +92,7 @@ webnn_json_generator("webnn_proc_gen") {
 }
 
 dawn_component("webnn_proc") {
-  DEFINE_PREFIX = "WEBNN"
+  DEFINE_PREFIX = "ML"
 
   public_deps = [ ":webnn_headers" ]
   deps = [ ":webnn_proc_gen" ]

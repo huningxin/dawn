@@ -28,7 +28,7 @@ extern "C" {
 // default value of the proctable. Setting the proctable back to null is good practice when you
 // are done using libdawn_proc since further usage will cause a segfault instead of calling an
 // unexpected function.
-WEBNN_EXPORT void webnnProcSetProcs(const WebnnProcTable* procs);
+ML_EXPORT void webnnProcSetProcs(const WebnnProcTable* procs);
 
 #ifdef __cplusplus
 }  // extern "C"

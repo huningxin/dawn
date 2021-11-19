@@ -1,4 +1,4 @@
-//* Copyright 2019 The Dawn Authors
+    //* Copyright 2019 The Dawn Authors
 //* Copyright 2021 The WebNN-native Authors
 //*
 //* Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,11 @@
 #include "webnn/webnn.h"
 
 typedef struct WebnnProcTable {
-    WebnnProcCreateGraphBuilder createGraphBuilder;
-    WebnnProcCreateNamedInputs createNamedInputs;
-    WebnnProcCreateNamedOperands createNamedOperands;
-    WebnnProcCreateNamedOutputs createNamedOutputs;
-    WebnnProcCreateOperatorArray createOperatorArray;
+    MLProcCreateGraphBuilder createGraphBuilder;
+    MLProcCreateNamedInputs createNamedInputs;
+    MLProcCreateNamedOperands createNamedOperands;
+    MLProcCreateNamedOutputs createNamedOutputs;
+    MLProcCreateOperatorArray createOperatorArray;
 
     {% for type in by_category["object"] %}
         {% for method in c_methods(type) %}

@@ -27,23 +27,23 @@ void webnnProcSetProcs(const WebnnProcTable* procs_) {
     }
 }
 
-MLGraphBuilder webnnCreateGraphBuilder(MLContext context) {
+MLGraphBuilder mlCreateGraphBuilder(MLContext context) {
     return procs.createGraphBuilder(context);
 }
 
-MLNamedInputs webnnCreateNamedInputs() {
+MLNamedInputs mlCreateNamedInputs() {
     return procs.createNamedInputs();
 }
 
-MLNamedOperands webnnCreateNamedOperands() {
+MLNamedOperands mlCreateNamedOperands() {
     return procs.createNamedOperands();
 }
 
-MLNamedOutputs webnnCreateNamedOutputs() {
+MLNamedOutputs mlCreateNamedOutputs() {
     return procs.createNamedOutputs();
 }
 
-MLOperatorArray webnnCreateOperatorArray() {
+MLOperatorArray mlCreateOperatorArray() {
     return procs.createOperatorArray();
 }
 

@@ -15,6 +15,41 @@
     "See the License for the specific language governing permissions and",
     "limitations under the License."
   ],
+
+  "_metadata": {
+    "target_api": "webnn",
+    "c_prefix": "ML",
+    "namespace": "ml"
+  },
+
+  "create graph builder": {
+    "category": "function",
+    "returns": "graph builder",
+    "args": [
+        {"name": "context", "type": "context"}
+    ]
+  },
+  "create named inputs": {
+    "category": "function",
+    "returns": "named inputs",
+    "args": []
+  },
+  "create named operands": {
+    "category": "function",
+    "returns": "named operands",
+    "args": []
+  },
+  "create named outputs": {
+    "category": "function",
+    "returns": "named outputs",
+    "args": []
+  },
+  "create operator array": {
+    "category": "function",
+    "returns": "operator array",
+    "args": []
+  },
+
   "error type": {
     "category": "enum",
     "values": [
@@ -885,6 +920,12 @@
           {"name": "outputs", "type": "named outputs"}
         ]
       }
+    ]
+  },
+  "s type": {
+    "category": "enum",
+    "values": [
+        {"value": 0, "name": "invalid", "valid": false}
     ]
   }
 }

@@ -131,23 +131,23 @@ namespace ml {
     {% endfor %}
 
     GraphBuilder CreateGraphBuilder(Context context) {
-        return GraphBuilder::Acquire(webnnCreateGraphBuilder(context.GetHandle()));
+        return GraphBuilder::Acquire(mlCreateGraphBuilder(context.GetHandle()));
     }
 
     NamedInputs CreateNamedInputs() {
-        return NamedInputs::Acquire(webnnCreateNamedInputs());
+        return NamedInputs::Acquire(mlCreateNamedInputs());
     }
 
     NamedOperands CreateNamedOperands() {
-        return NamedOperands::Acquire(webnnCreateNamedOperands());
+        return NamedOperands::Acquire(mlCreateNamedOperands());
     }
 
     NamedOutputs CreateNamedOutputs() {
-        return NamedOutputs::Acquire(webnnCreateNamedOutputs());
+        return NamedOutputs::Acquire(mlCreateNamedOutputs());
     }
 
     OperatorArray CreateOperatorArray() {
-        return OperatorArray::Acquire(webnnCreateOperatorArray());
+        return OperatorArray::Acquire(mlCreateOperatorArray());
     }
 
 }
