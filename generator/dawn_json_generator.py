@@ -326,14 +326,6 @@ def linked_record_members(json_data, types):
 ############################################################
 
 
-def link_metadata(json_data):
-    return {
-            'target_api': json_data['target_api'],
-            'c_prefix': json_data['c_prefix'],
-            'namespace': json_data['namespace']
-    }
-
-
 def link_object(obj, types):
     def make_method(json_data):
         arguments = linked_record_members(json_data.get('args', []), types)
@@ -432,8 +424,6 @@ def parse_json(json, enabled_tags):
 
     metadata = {}
     for (name, json_data) in json.items():
-        if name == '_metadata' :
-            metadata = link_metadata(json_data)
         if name[0] == '_' or not item_is_enabled(enabled_tags, json_data):
             continue
         category = json_data['category']
@@ -743,7 +733,7 @@ def make_base_render_params(metadata):
             'as_jsEnumValue': as_jsEnumValue,
             'convert_cType_to_cppType': convert_cType_to_cppType,
             'as_varName': as_varName,
-            'decorate': decorate
+            'decorate': decorate,
         }
 
 

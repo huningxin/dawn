@@ -30,7 +30,7 @@ except ValueError:
     sys.exit(1)
 
 from generator_lib import Generator, run_generator, FileRender
-from dawn_json_generator import base_render_params, parse_json, \
+from dawn_json_generator import make_base_render_params, parse_json, \
                             has_callback_arguments, annotated, as_frontendType,\
                             compute_wire_params, as_wireType
 
@@ -69,17 +69,20 @@ class MultiGeneratorFromWebnnJSON(Generator):
         targets = args.targets.split(',')
 
         metadata = api_params['metadata']
-        base_params = base_render_params(metadata)
+        base_params = make_base_render_params(metadata)
 
         renders = []
 
+        api_file_name = metadata.api.lower()
+        dawn_prefix = 'Dawn' if api_file_name == 'webgpu' else api_file_name
+
         if 'webnn_headers' in targets:
             renders.append(
-                FileRender('../../templates/target_api.h', 'src/include/dawn/webnn/webnn.h',
+                FileRender('../../templates/api.h', 'src/include/dawn/webnn/webnn.h',
                            [base_params, api_params]))
             renders.append(
                 FileRender('webnn_proc_table.h',
-                           'src/include/dawn/webnn/webnn_proc_table.h',
+                           'src/include/dawn/webnn/' + dawn_prefix + '_proc_table.h',
                            [base_params, api_params]))
 
         if 'webnncpp_headers' in targets:
