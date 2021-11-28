@@ -17,7 +17,7 @@
 #define WEBNN_NATIVE_WEBNN_NATIVE_H_
 
 #include <webnn/webnn.h>
-#include <dawn/webnn/webnn_proc_table.h>
+#include <dawn/webnn_proc_table.h>
 #include <dawn_native/webnn/webnn_native_export.h>
 #include <string>
 #include <vector>

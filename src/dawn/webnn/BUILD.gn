@@ -25,16 +25,16 @@ import("${dawn_root}/generator/webnn/webnn_generator.gni")
 webnn_json_generator("webnn_headers_gen") {
   target = "webnn_headers"
   outputs = [
-    "src/include/dawn/webnn/webnn_proc_table.h",
-    "src/include/dawn/webnn/webnn.h",
+    "src/include/dawn/webnn_proc_table.h",
+    "src/include/dawn/webnn.h",
   ]
 }
 
 webnn_json_generator("webnn_emscripten_bits_gen") {
   target = "emscripten_bits"
   outputs = [
-    "src/dawn/webnn/webnn_struct_info.json",
-    "src/dawn/webnn/library_webnn_enum_tables.js",
+    "src/dawn/webnn_struct_info.json",
+    "src/dawn/library_webnn_enum_tables.js",
   ]
 }
 
@@ -52,7 +52,7 @@ source_set("webnn_headers") {
 
 webnn_json_generator("webnncpp_headers_gen") {
   target = "webnncpp_headers"
-  outputs = [ "src/include/dawn/webnn/webnn_cpp.h" ]
+  outputs = [ "src/include/dawn/webnn_cpp.h" ]
 }
 
 source_set("webnncpp_headers") {
@@ -62,7 +62,7 @@ source_set("webnncpp_headers") {
   ]
 
   sources = get_target_outputs(":webnncpp_headers_gen")
-  sources += [ "${dawn_root}/src/include/dawn/webnn/EnumClassBitmasks.h" ]
+  sources += [ "${dawn_root}/src/include/dawn/WebnnEnumClassBitmasks.h" ]
 }
 
 ###############################################################################
@@ -71,7 +71,7 @@ source_set("webnncpp_headers") {
 
 webnn_json_generator("webnncpp_gen") {
   target = "webnncpp"
-  outputs = [ "src/dawn/webnn/webnn_cpp.cpp" ]
+  outputs = [ "src/dawn/webnn_cpp.cpp" ]
 }
 
 source_set("webnncpp") {
@@ -88,7 +88,7 @@ source_set("webnncpp") {
 
 webnn_json_generator("webnn_proc_gen") {
   target = "webnn_proc"
-  outputs = [ "src/dawn/webnn/webnn_proc.c" ]
+  outputs = [ "src/dawn/webnn_proc.c" ]
 }
 
 dawn_component("webnn_proc") {
@@ -97,5 +97,5 @@ dawn_component("webnn_proc") {
   public_deps = [ ":webnn_headers" ]
   deps = [ ":webnn_proc_gen" ]
   sources = get_target_outputs(":webnn_proc_gen")
-  sources += [ "${dawn_root}/src/dawn/include/webnn/webnn_proc.h" ]
+  sources += [ "${dawn_root}/src/dawn/include/webnn_proc.h" ]
 }

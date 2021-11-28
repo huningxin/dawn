@@ -16,7 +16,7 @@
 #ifndef MOCK_WEBNN_H
 #define MOCK_WEBNN_H
 
-#include <dawn/webnn/webnn_proc_table.h>
+#include <dawn/webnn_proc_table.h>
 #include <webnn/webnn.h>
 #include <gmock/gmock.h>
 

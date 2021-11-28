@@ -19,7 +19,8 @@
   "_metadata": {
     "api": "WebNN",
     "c_prefix": "ML",
-    "namespace": "ml"
+    "namespace": "ml",
+    "proc_table_prefix": "Webnn"
   },
 
   "create graph builder": {

@@ -16,7 +16,7 @@
 
 #include <sstream>
 
-#include "dawn_native/webnn/ValidationUtils_autogen.h"
+#include "dawn_native/WebnnValidationUtils_autogen.h"
 #include "dawn_native/webnn/webnn_platform.h"
 
 namespace webnn_native {

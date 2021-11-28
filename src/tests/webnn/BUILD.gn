@@ -94,8 +94,8 @@ if (!build_with_chromium) {
 webnn_json_generator("mock_webnn_gen") {
   target = "mock_webnn"
   outputs = [
-    "src/dawn/webnn/mock_webnn.h",
-    "src/dawn/webnn/mock_webnn.cpp",
+    "src/dawn/mock_webnn.h",
+    "src/dawn/mock_webnn.cpp",
   ]
 }
 

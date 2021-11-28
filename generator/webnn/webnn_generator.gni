@@ -39,9 +39,9 @@ import("../generator_lib.gni")
 # disallowed gen directories.
 
 webnn_allowed_gen_output_dirs = [
-  "src/dawn/webnn/",
-  "src/dawn_native/webnn/",
-  "src/include/dawn/webnn/",
+  "src/dawn/",
+  "src/dawn_native/",
+  "src/include/dawn/",
 ]
 
 # Template to help invoking Dawn code generators based on generator_lib

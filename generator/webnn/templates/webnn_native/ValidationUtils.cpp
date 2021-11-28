@@ -13,7 +13,7 @@
 //* See the License for the specific language governing permissions and
 //* limitations under the License.
 
-#include "dawn_native/webnn/ValidationUtils_autogen.h"
+#include "dawn_native/WebnnValidationUtils_autogen.h"
 
 namespace webnn_native {
 

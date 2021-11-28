@@ -733,7 +733,7 @@ def make_base_render_params(metadata):
             'as_jsEnumValue': as_jsEnumValue,
             'convert_cType_to_cppType': convert_cType_to_cppType,
             'as_varName': as_varName,
-            'decorate': decorate,
+            'decorate': decorate
         }
 
 
