@@ -21,7 +21,8 @@
 #include <string>
 #include <vector>
 
-namespace dawn_wire { namespace client {
+{% set api = metadata.proc_table_prefix %}
+namespace {{api.lower()}}_wire { namespace client {
 
     //* Outputs an rvalue that's the number of elements a pointer member points to.
     {% macro member_length(member, accessor) -%}
@@ -175,4 +176,4 @@ namespace dawn_wire { namespace client {
     const {{Prefix}}ProcTable& GetProcs() {
         return gProcTable;
     }
-}}  // namespace dawn_wire::client
+}}  // namespace {{api.lower()}}_wire::client
