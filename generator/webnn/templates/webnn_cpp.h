@@ -16,7 +16,7 @@
 #define WEBNN_CPP_H_
 
 #include "dawn/webnn.h"
-#include "dawn/webnn/EnumClassBitmasks.h"
+// #include "dawn/webnn/EnumClassBitmasks.h"
 
 #include <limits>
 
