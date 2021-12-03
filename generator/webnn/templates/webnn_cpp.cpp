@@ -89,14 +89,14 @@ namespace ml {
         {%- endmacro -%}
 
         {%- macro render_cpp_to_c_method_call(type, method) -%}
-            {{as_cMethod(type.name, method.name)}}(GetHandle()
+            {{as_cMethod(type.name, method.name)}}(Get()
                 {%- for arg in method.arguments -%},{{" "}}
                     {%- if arg.annotation == "value" -%}
                         {%- if arg.type.category == "object" -%}
-                            {{as_varName(arg.name)}}.GetHandle()
+                            {{as_varName(arg.name)}}.Get()
                         {%- elif arg.type.category == "enum" or arg.type.category == "bitmask" -%}
                             static_cast<{{as_cType(arg.type.name)}}>({{as_varName(arg.name)}})
-                        {%- elif arg.type.category in ["callback", "native"] -%}
+                        {%- elif arg.type.category in ["function pointer", "native"] -%}
                             {{as_varName(arg.name)}}
                         {%- else -%}
                             UNHANDLED
@@ -118,12 +118,12 @@ namespace ml {
                 {% endif %}
             }
         {% endfor %}
-        void {{CppType}}::WebnnReference({{CType}} handle) {
+        void {{CppType}}::MLReference({{CType}} handle) {
             if (handle != nullptr) {
                 {{as_cMethod(type.name, Name("reference"))}}(handle);
             }
         }
-        void {{CppType}}::WebnnRelease({{CType}} handle) {
+        void {{CppType}}::MLRelease({{CType}} handle) {
             if (handle != nullptr) {
                 {{as_cMethod(type.name, Name("release"))}}(handle);
             }
@@ -131,7 +131,7 @@ namespace ml {
     {% endfor %}
 
     GraphBuilder CreateGraphBuilder(Context context) {
-        return GraphBuilder::Acquire(mlCreateGraphBuilder(context.GetHandle()));
+        return GraphBuilder::Acquire(mlCreateGraphBuilder(context.Get()));
     }
 
     NamedInputs CreateNamedInputs() {

@@ -23,6 +23,11 @@
     "proc_table_prefix": "Webnn"
   },
 
+  "proc": {
+    "category": "function pointer",
+    "returns": "void",
+    "args": []
+  },
   "create graph builder": {
     "category": "function",
     "returns": "graph builder",
@@ -100,7 +105,7 @@
     ]
   },
   "error callback": {
-    "category": "callback",
+    "category": "function pointer",
     "args": [
         {"name": "type", "type": "error type"},
         {"name": "message", "type": "char", "annotation": "const*"},
@@ -201,7 +206,7 @@
         "returns": "size_t"
       },
       {
-        "name": "get",
+        "name": "get operand",
         "returns": "operand",
         "args": [
           {"name": "index", "type": "size_t"}
@@ -224,7 +229,7 @@
         ]
       },
       {
-        "name": "get",
+        "name": "get operator",
         "returns": "operator",
         "args": [
           {"name": "index", "type": "size_t"}

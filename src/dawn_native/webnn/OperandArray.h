@@ -34,7 +34,7 @@ namespace webnn_native {
         size_t Size() {
             return mOperands.size();
         }
-        OperandBase* Get(size_t index) {
+        OperandBase* GetOperand(size_t index) {
             return mOperands[index].Get();
         }
 

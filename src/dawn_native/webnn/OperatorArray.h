@@ -33,7 +33,7 @@ namespace webnn_native {
             mOperators.push_back(Ref<OperatorBase>(mlOperator));
         }
 
-        OperatorBase* Get(size_t index) {
+        OperatorBase* GetOperator(size_t index) {
             return mOperators[index].Get();
         }
 
