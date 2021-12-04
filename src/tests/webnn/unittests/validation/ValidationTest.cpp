@@ -17,7 +17,7 @@
 
 #include "common/Assert.h"
 #include "webnn/webnn.h"
-#include "dawn/webnn/webnn_proc.h"
+#include "dawn/webnn_proc.h"
 
 void ValidationTest::SetUp() {
     WebnnProcTable backendProcs = webnn_native::GetProcs();

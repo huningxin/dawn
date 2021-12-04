@@ -92,7 +92,7 @@ class MultiGeneratorFromWebnnJSON(Generator):
 
         if 'webnn_proc' in targets:
             renders.append(
-                FileRender('webnn_proc.c', 'src/dawn/webnn_proc.c',
+                FileRender('../../templates/dawn_proc.c', 'src/dawn/' + proc_table_prefix + '_proc.c',
                            [base_params, api_params]))
 
         if 'webnncpp' in targets:
