@@ -641,8 +641,13 @@ def as_cppEnum(value_name):
 
 
 def as_MethodSuffix(type_name, method_name):
-    assert not type_name.native and not method_name.native
-    return type_name.CamelCase() + method_name.CamelCase()
+    method_suffix = ""
+    if type_name != None:
+        assert not type_name.native
+        method_suffix += type_name.CamelCase()
+    assert not method_name.native
+    method_suffix += method_name.CamelCase()
+    return method_suffix
 
 
 def as_frontendType(metadata, typ):
