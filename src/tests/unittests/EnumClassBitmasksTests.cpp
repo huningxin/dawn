@@ -18,16 +18,6 @@
 
 namespace dawn {
 
-    using dawn::operator|;
-    using dawn::operator&;
-    using dawn::operator^;
-    using dawn::operator~;
-    using dawn::operator&=;
-    using dawn::operator|=;
-    using dawn::operator^=;
-
-    using dawn::HasZeroOrOneBits;
-
     enum class Color : uint32_t {
         R = 1,
         G = 2,
@@ -35,16 +25,10 @@ namespace dawn {
         A = 8,
     };
 
-}
-
-namespace dawn {
     template <>
-    struct IsDawnBitmask<wgpu::Color> {
+    struct IsDawnBitmask<Color> {
         static constexpr bool enable = true;
     };
-} // namespace dawn
-
-namespace wgpu {
 
     TEST(BitmaskTests, BasicOperations) {
         Color test1 = Color::R | Color::G;
