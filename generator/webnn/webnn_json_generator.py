@@ -73,31 +73,30 @@ class MultiGeneratorFromWebnnJSON(Generator):
 
         renders = []
 
-        api_file_name = metadata.api.lower()
-        proc_table_prefix = metadata.proc_table_prefix.lower()
-
+        api = metadata.api.lower()
+        prefix = metadata.proc_table_prefix.lower()
         if 'webnn_headers' in targets:
             renders.append(
                 FileRender('../../templates/api.h', 'src/include/dawn/webnn.h',
                            [base_params, api_params]))
             renders.append(
                 FileRender('../../templates/dawn_proc_table.h',
-                           'src/include/dawn/' + proc_table_prefix + '_proc_table.h',
+                           'src/include/dawn/' + prefix + '_proc_table.h',
                            [base_params, api_params]))
 
         if 'webnncpp_headers' in targets:
             renders.append(
-                FileRender('../../templates/api_cpp.h', 'src/include/dawn/' + api_file_name + '_cpp.h',
+                FileRender('../../templates/api_cpp.h', 'src/include/dawn/' + api + '_cpp.h',
                            [base_params, api_params]))
 
         if 'webnn_proc' in targets:
             renders.append(
-                FileRender('../../templates/dawn_proc.c', 'src/dawn/' + proc_table_prefix + '_proc.c',
+                FileRender('../../templates/dawn_proc.c', 'src/dawn/' + prefix + '_proc.c',
                            [base_params, api_params]))
 
         if 'webnncpp' in targets:
             renders.append(
-                FileRender('webnn_cpp.cpp', 'src/dawn/webnn_cpp.cpp',
+                FileRender('../../templates/api_cpp.cpp', 'src/dawn/' + api + '_cpp.cpp',
                            [base_params, api_params]))
 
         if 'emscripten_bits' in targets:
