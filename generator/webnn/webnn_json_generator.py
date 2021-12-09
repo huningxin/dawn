@@ -101,12 +101,12 @@ class MultiGeneratorFromWebnnJSON(Generator):
 
         if 'emscripten_bits' in targets:
             renders.append(
-                FileRender('webnn_struct_info.json',
-                           'src/dawn/webnn_struct_info.json',
+                FileRender('../../templates/api_struct_info.json',
+                           'src/dawn/' + api + '_struct_info.json',
                            [base_params, api_params]))
             renders.append(
-                FileRender('library_webnn_enum_tables.js',
-                           'src/dawn/library_webnn_enum_tables.js',
+                FileRender('../../templates/library_api_enum_tables.js',
+                           'src/dawn/library_' + api + '_enum_tables.js',
                            [base_params, api_params]))
 
         if 'mock_webnn' in targets:
@@ -116,10 +116,10 @@ class MultiGeneratorFromWebnnJSON(Generator):
                 }
             ]
             renders.append(
-                FileRender('mock_webnn.h', 'src/dawn/mock_webnn.h',
+                FileRender('../../templates/mock_api.h', 'src/dawn/mock_' + api + '.h',
                            mock_params))
             renders.append(
-                FileRender('mock_webnn.cpp', 'src/dawn/mock_webnn.cpp',
+                FileRender('../../templates/mock_api.cpp', 'src/dawn/mock_' + api + '.cpp',
                            mock_params))
 
         if 'webnn_native_utils' in targets:
