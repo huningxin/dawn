@@ -20,6 +20,7 @@
     "api": "WebNN",
     "c_prefix": "ML",
     "namespace": "ml",
+    "native_namespace": "webnn_native",
     "proc_table_prefix": "Webnn"
   },
 

@@ -27,6 +27,7 @@ The `"_metadata"` key in the JSON file is used by flexible templates for generat
 
  - `"api"` a string, the name of the Web API
  - `"namespace"` a string, the namespace of C++ wrapper
+ - `"native_namespace"` a string, the namespace of native implementation
  - `"c_prefix"` (optional) a string, the prefix of C function and data type, it will default to upper-case of `"namespace"` if it's not provided.
  - `"proc_table_prefix"` a string, the prefix of proc table.
  - `"impl_dir"` a string, the directory of API implementation
