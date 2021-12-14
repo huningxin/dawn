@@ -894,12 +894,12 @@ class MultiGeneratorFromDawnJSON(Generator):
                            'src/' + native_dir + '/' + prefix + '_platform_autogen.h',
                            frontend_params))
             renders.append(
-                FileRender('dawn_native/wgpu_structs.h',
-                           'src/dawn_native/wgpu_structs_autogen.h',
+                FileRender('dawn_native/api_structs.h',
+                           'src/' + native_dir + '/' + namespace + '_structs_autogen.h',
                            frontend_params))
             renders.append(
-                FileRender('dawn_native/wgpu_structs.cpp',
-                           'src/dawn_native/wgpu_structs_autogen.cpp',
+                FileRender('dawn_native/api_structs.cpp',
+                           'src/' + native_dir + '/' + namespace + '_structs_autogen.cpp',
                            frontend_params))
             renders.append(
                 FileRender('dawn_native/ProcTable.cpp',

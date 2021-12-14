@@ -23,7 +23,7 @@
 //* limitations under the License.
 //*
 //*
-{% include 'BSD_LICENSE' %}
+
 #ifndef {{metadata.api.upper()}}_H_
 #define {{metadata.api.upper()}}_H_
 

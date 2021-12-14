@@ -51,10 +51,10 @@ webnn_json_generator("webnn_native_utils_gen") {
   target = "webnn_native_utils"
   outputs = [
     "src/dawn_native/WebnnProcTable.cpp",
-    "src/dawn_native/webnn_structs_autogen.h",
-    "src/dawn_native/webnn_structs_autogen.cpp",
-    "src/dawn_native/WebnnValidationUtils_autogen.h",
-    "src/dawn_native/WebnnValidationUtils_autogen.cpp",
+    "src/dawn_native/webnn/ml_structs_autogen.h",
+    "src/dawn_native/webnn/ml_structs_autogen.cpp",
+    "src/dawn_native/webnn/ValidationUtils_autogen.h",
+    "src/dawn_native/webnn/ValidationUtils_autogen.cpp",
   ]
 }
 

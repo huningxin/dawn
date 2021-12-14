@@ -32,7 +32,7 @@ except ValueError:
 from generator_lib import Generator, run_generator, FileRender
 from dawn_json_generator import make_base_render_params, parse_json, \
                             has_callback_arguments, annotated, as_frontendType,\
-                            compute_wire_params, as_wireType
+                            compute_wire_params, as_wireType, Name
 
 class MultiGeneratorFromWebnnJSON(Generator):
     def get_description(self):
@@ -134,21 +134,27 @@ class MultiGeneratorFromWebnnJSON(Generator):
                 }
             ]
 
+            native_dir = ""
+            if metadata.impl_dir != None:
+                native_dir = metadata.impl_dir
+            else:
+                native_dir = Name(metadata.native_namespace).snake_case()
+            namespace = metadata.namespace
             renders.append(
-                FileRender('webnn_native/ValidationUtils.h',
-                           'src/dawn_native/WebnnValidationUtils_autogen.h',
+                FileRender('../../templates/dawn_native/ValidationUtils.h',
+                           'src/' + native_dir + '/ValidationUtils_autogen.h',
                            frontend_params))
             renders.append(
-                FileRender('webnn_native/ValidationUtils.cpp',
-                           'src/dawn_native/WebnnValidationUtils_autogen.cpp',
+                FileRender('../../templates/dawn_native/ValidationUtils.cpp',
+                           'src/' + native_dir + '/ValidationUtils_autogen.cpp',
                            frontend_params))
             renders.append(
-                FileRender('webnn_native/webnn_structs.h',
-                           'src/dawn_native/webnn_structs_autogen.h',
+                FileRender('../../templates/dawn_native/api_structs.h',
+                           'src/' + native_dir + '/' + namespace + '_structs_autogen.h',
                            frontend_params))
             renders.append(
-                FileRender('webnn_native/webnn_structs.cpp',
-                           'src/dawn_native/webnn_structs_autogen.cpp',
+                FileRender('../../templates/dawn_native/api_structs.cpp',
+                           'src/' + native_dir + '/' + namespace + '_structs_autogen.cpp',
                            frontend_params))
             renders.append(
                 FileRender('webnn_native/ProcTable.cpp',

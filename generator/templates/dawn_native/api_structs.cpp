@@ -12,24 +12,28 @@
 //* See the License for the specific language governing permissions and
 //* limitations under the License.
 
-#include "dawn_native/wgpu_structs_autogen.h"
+{% set native_dir = metadata.impl_dir if metadata.impl_dir else native_namespace %}
+{% set namespace = metadata.namespace %}
+{% set native_namespace = Name(metadata.native_namespace).snake_case() %}
+#include "{{native_dir}}/{{namespace}}_structs_autogen.h"
 
 #include <tuple>
 
 #ifdef __GNUC__
-// error: 'offsetof' within non-standard-layout type 'wgpu::XXX' is conditionally-supported
+// error: 'offsetof' within non-standard-layout type '{{namespace}}::XXX' is conditionally-supported
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
 
-namespace dawn_native {
-
-    static_assert(sizeof(ChainedStruct) == sizeof(WGPUChainedStruct),
+namespace {{native_namespace}} {
+   
+    {% set c_prefix = metadata.c_prefix %}
+    static_assert(sizeof(ChainedStruct) == sizeof({{c_prefix}}ChainedStruct),
             "sizeof mismatch for ChainedStruct");
-    static_assert(alignof(ChainedStruct) == alignof(WGPUChainedStruct),
+    static_assert(alignof(ChainedStruct) == alignof({{c_prefix}}ChainedStruct),
             "alignof mismatch for ChainedStruct");
-    static_assert(offsetof(ChainedStruct, nextInChain) == offsetof(WGPUChainedStruct, next),
+    static_assert(offsetof(ChainedStruct, nextInChain) == offsetof({{c_prefix}}ChainedStruct, next),
             "offsetof mismatch for ChainedStruct::nextInChain");
-    static_assert(offsetof(ChainedStruct, sType) == offsetof(WGPUChainedStruct, sType),
+    static_assert(offsetof(ChainedStruct, sType) == offsetof({{c_prefix}}ChainedStruct, sType),
             "offsetof mismatch for ChainedStruct::sType");
 
     {% for type in by_category["structure"] %}
@@ -66,4 +70,4 @@ namespace dawn_native {
         }
 
     {% endfor %}
-}
+} // namespace {{native_namespace}}
