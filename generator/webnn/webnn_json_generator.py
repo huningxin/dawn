@@ -134,11 +134,8 @@ class MultiGeneratorFromWebnnJSON(Generator):
                 }
             ]
 
-            native_dir = ""
-            if metadata.impl_dir != None:
-                native_dir = metadata.impl_dir
-            else:
-                native_dir = Name(metadata.native_namespace).snake_case()
+            impl_dir = metadata.impl_dir + '/' if metadata.impl_dir else ''
+            native_dir = impl_dir + Name(metadata.native_namespace).snake_case()
             namespace = metadata.namespace
             renders.append(
                 FileRender('../../templates/dawn_native/ValidationUtils.h',

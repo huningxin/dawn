@@ -12,9 +12,10 @@
 //* See the License for the specific language governing permissions and
 //* limitations under the License.
 
+{% set native_dir = metadata.impl_dir if metadata.impl_dir else "dawn" %}
 {% set Prefix = metadata.proc_table_prefix %}
 {% set prefix = Prefix.lower() %}
-#include "dawn/{{prefix}}_proc.h"
+#include "{{native_dir}}/{{prefix}}_proc.h"
 
 static {{Prefix}}ProcTable procs;
 

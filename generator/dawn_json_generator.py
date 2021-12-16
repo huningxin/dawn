@@ -881,6 +881,7 @@ class MultiGeneratorFromDawnJSON(Generator):
 
             impl_dir = metadata.impl_dir + '/' if metadata.impl_dir else ''
             native_dir = impl_dir + Name(metadata.native_namespace).snake_case()
+            namespace = metadata.namespace
             renders.append(
                 FileRender('dawn_native/ValidationUtils.h',
                            'src/' + native_dir + '/ValidationUtils_autogen.h',

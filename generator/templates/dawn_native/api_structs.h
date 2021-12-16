@@ -14,7 +14,8 @@
 
 {% set namespace_name = Name(metadata.native_namespace) %}
 {% set native_namespace = namespace_name.snake_case() %}
-{% set native_dir = metadata.impl_dir if metadata.impl_dir else native_namespace %}
+{% set impl_dir = metadata.impl_dir + "/" if metadata.impl_dir else "" %}
+{% set native_dir = impl_dir + native_namespace %}
 {% set DIR = namespace_name.concatcase().upper() %}
 {% set namespace = metadata.namespace %}
 #ifndef {{DIR}}_{{namespace.upper()}}_STRUCTS_H_

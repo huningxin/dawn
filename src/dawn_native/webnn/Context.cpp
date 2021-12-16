@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "dawn_native/webnn/Context.h"
+#include "webnn/webnn_native/Context.h"
 
 #include <sstream>
 
 #include "webnn_native/ValidationUtils_autogen.h"
-#include "dawn_native/webnn/webnn_platform.h"
+#include "webnn/webnn_native/webnn_platform.h"
 
 namespace webnn_native {
 

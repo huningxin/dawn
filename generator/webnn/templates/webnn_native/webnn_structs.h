@@ -17,7 +17,7 @@
 #define WEBNN_NATIVE_WEBNN_STRUCTS_H_
 
 #include "webnn/webnn_cpp.h"
-#include "dawn_native/webnn/Forward.h"
+#include "webnn/webnn_native/Forward.h"
 
 namespace webnn_native {
 

@@ -21,7 +21,7 @@
     "c_prefix": "ML",
     "namespace": "ml",
     "native_namespace": "webnn native",
-    "impl_dir": "dawn_native/webnn",
+    "impl_dir": "webnn",
     "proc_table_prefix": "Webnn"
   },
 

@@ -18,7 +18,7 @@
 
 #include "webnn/webnn_cpp.h"
 
-#include "dawn_native/webnn/Error.h"
+#include "webnn/webnn_native/Error.h"
 
 namespace webnn_native {
 

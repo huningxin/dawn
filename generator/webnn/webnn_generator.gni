@@ -41,7 +41,7 @@ import("../generator_lib.gni")
 webnn_allowed_gen_output_dirs = [
   "src/dawn/",
   "src/dawn_native/",
-  "src/dawn_native/webnn/",
+  "src/webnn/webnn_native/",
   "src/include/dawn/",
 ]
 
