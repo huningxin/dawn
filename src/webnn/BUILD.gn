@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../../../scripts/dawn_overrides_with_defaults.gni")
+import("../../scripts/dawn_overrides_with_defaults.gni")
 
 import("${dawn_root}/scripts/dawn_component.gni")
-import("${dawn_root}/generator/webnn/webnn_generator.gni")
+import("${dawn_root}/src/webnn/webnn_generator.gni")
 
 ###############################################################################
 # WebNN headers
 ###############################################################################
 
 webnn_json_generator("webnn_headers_gen") {
-  target = "webnn_headers"
+  target = "dawn_headers"
   outputs = [
     "src/include/dawn/webnn_proc_table.h",
     "src/include/dawn/webnn.h",
@@ -51,8 +51,11 @@ source_set("webnn_headers") {
 ###############################################################################
 
 webnn_json_generator("webnncpp_headers_gen") {
-  target = "webnncpp_headers"
-  outputs = [ "src/include/dawn/webnn_cpp.h" ]
+  target = "dawncpp_headers"
+  outputs = [
+    "src/include/dawn/webnn_cpp.h",
+    "src/include/dawn/webnn_cpp_print.h",
+  ]
 }
 
 source_set("webnncpp_headers") {
@@ -70,7 +73,7 @@ source_set("webnncpp_headers") {
 ###############################################################################
 
 webnn_json_generator("webnncpp_gen") {
-  target = "webnncpp"
+  target = "dawncpp"
   outputs = [ "src/dawn/webnn_cpp.cpp" ]
 }
 
@@ -87,8 +90,11 @@ source_set("webnncpp") {
 ###############################################################################
 
 webnn_json_generator("webnn_proc_gen") {
-  target = "webnn_proc"
-  outputs = [ "src/dawn/webnn_proc.c" ]
+  target = "dawn_proc"
+  outputs = [
+    "src/dawn/webnn_proc.c",
+    "src/dawn/webnn_thread_dispatch_proc.cpp"
+  ]
 }
 
 dawn_component("webnn_proc") {

@@ -16,7 +16,7 @@
 import("../../../scripts/dawn_overrides_with_defaults.gni")
 
 import("//testing/test.gni")
-import("${dawn_root}/generator/webnn/webnn_generator.gni")
+import("${dawn_root}/src/webnn/webnn_generator.gni")
 
 group("webnn_tests") {
   testonly = true
@@ -92,7 +92,7 @@ if (!build_with_chromium) {
 ###############################################################################
 
 webnn_json_generator("mock_webnn_gen") {
-  target = "mock_webnn"
+  target = "mock_api"
   outputs = [
     "src/dawn/mock_webnn.h",
     "src/dawn/mock_webnn.cpp",
@@ -109,8 +109,8 @@ test("webnn_unittests") {
     ":gmock_and_gtest",
     ":mock_webnn_gen",
     "${dawn_root}/src/common",
-    "${dawn_root}/src/dawn/webnn:webnn_proc",
-    "${dawn_root}/src/dawn/webnn:webnncpp",
+    "${dawn_root}/src/webnn:webnn_proc",
+    "${dawn_root}/src/webnn:webnncpp",
     "${dawn_root}/src/webnn/webnn_native:webnn_native",
     "${dawn_root}/src/webnn/webnn_native:webnn_native_sources",
   ]

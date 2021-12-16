@@ -749,7 +749,7 @@ class MultiGeneratorFromDawnJSON(Generator):
     def add_commandline_arguments(self, parser):
         allowed_targets = [
             'dawn_headers', 'dawncpp_headers', 'dawncpp', 'dawn_proc',
-            'mock_api', 'dawn_wire', "dawn_native_utils"
+            'mock_api', 'dawn_wire', "dawn_native_utils", "webgpu_native_utils"
         ]
 
         parser.add_argument('--dawn-json',
@@ -902,6 +902,18 @@ class MultiGeneratorFromDawnJSON(Generator):
                 FileRender('dawn_native/api_structs.cpp',
                            'src/' + native_dir + '/' + namespace + '_structs_autogen.cpp',
                            frontend_params))
+
+        if 'webgpu_native_utils' in targets:
+            frontend_params = [
+                RENDER_PARAMS_BASE,
+                params_dawn,
+                {
+                    # TODO: as_frontendType and co. take a Type, not a Name :(
+                    'as_frontendType': lambda typ: as_frontendType(metadata, typ),
+                    'as_annotated_frontendType': \
+                        lambda arg: annotated(as_frontendType(metadata, arg.type), arg),
+                }
+            ]
             renders.append(
                 FileRender('dawn_native/ProcTable.cpp',
                            'src/dawn_native/ProcTable.cpp', frontend_params))

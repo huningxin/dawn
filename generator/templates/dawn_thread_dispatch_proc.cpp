@@ -1,6 +1,6 @@
 {% set Prefix = metadata.proc_table_prefix %}
 {% set prefix = Prefix.lower() %}
-#include "dawn/{{prefix}}_thread_dispatch_proc.h"
+#include "{{prefix}}/{{prefix}}_thread_dispatch_proc.h"
 
 #include <thread>
 

@@ -18,7 +18,7 @@ import("../../../scripts/dawn_overrides_with_defaults.gni")
 import("//build_overrides/build.gni")
 import("${dawn_root}/scripts/dawn_component.gni")
 import("${dawn_root}/scripts/dawn_features.gni")
-import("${dawn_root}/generator/webnn/webnn_generator.gni")
+import("${dawn_root}/src/webnn/webnn_generator.gni")
 
 # Import mac_min_system_version
 if (is_mac) {
@@ -48,20 +48,21 @@ config("webnn_native_internal") {
 }
 
 webnn_json_generator("webnn_native_utils_gen") {
-  target = "webnn_native_utils"
+  target = "dawn_native_utils"
   outputs = [
-    "src/dawn_native/WebnnProcTable.cpp",
+    #"src/dawn_native/WebnnProcTable.cpp",
     "src/webnn/webnn_native/ml_structs_autogen.h",
     "src/webnn/webnn_native/ml_structs_autogen.cpp",
     "src/webnn/webnn_native/ValidationUtils_autogen.h",
     "src/webnn/webnn_native/ValidationUtils_autogen.cpp",
+    "src/webnn/webnn_native/webnn_platform_autogen.h",
   ]
 }
 
 # Public webnn_native headers so they can be publicly visible for
 # dependencies of webnn_native
 source_set("webnn_native_headers") {
-  public_deps = [ "${dawn_root}/src/dawn/webnn:webnncpp_headers" ]
+  public_deps = [ "${dawn_root}/src/webnn:webnncpp_headers" ]
   all_dependent_configs =
       [ "${dawn_root}/src/common:dawn_public_include_dirs" ]
   sources = [
@@ -89,6 +90,7 @@ source_set("webnn_native_sources") {
   configs += [ ":webnn_native_internal" ]
 
   sources = get_target_outputs(":webnn_native_utils_gen")
+  sources += [ "WebnnProcTable.cpp" ]
 
   sources += [
     "Context.cpp",

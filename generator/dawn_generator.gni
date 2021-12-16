@@ -45,6 +45,7 @@ dawn_allowed_gen_output_dirs = [
   "src/dawn_wire/server/",
   "src/dawn_wire/",
   "src/include/dawn/",
+  "src/webnn/webnn_native/",
   "emscripten-bits/",
   "webgpu-headers/",
 ]
