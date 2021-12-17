@@ -27,7 +27,7 @@
 #endif
 
 namespace {{native_namespace}} {
-   
+
     {% set c_prefix = metadata.c_prefix %}
     static_assert(sizeof(ChainedStruct) == sizeof({{c_prefix}}ChainedStruct),
             "sizeof mismatch for ChainedStruct");

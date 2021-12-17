@@ -902,6 +902,14 @@ class MultiGeneratorFromDawnJSON(Generator):
                 FileRender('dawn_native/api_structs.cpp',
                            'src/' + native_dir + '/' + namespace + '_structs_autogen.cpp',
                            frontend_params))
+            renders.append(
+                FileRender('dawn_native/ChainUtils.h',
+                           'src/' + native_dir + '/ChainUtils_autogen.h',
+                           frontend_params))
+            renders.append(
+                FileRender('dawn_native/ChainUtils.cpp',
+                           'src/' + native_dir + '/ChainUtils_autogen.cpp',
+                           frontend_params))
 
         if 'webgpu_native_utils' in targets:
             frontend_params = [
@@ -917,14 +925,6 @@ class MultiGeneratorFromDawnJSON(Generator):
             renders.append(
                 FileRender('dawn_native/ProcTable.cpp',
                            'src/dawn_native/ProcTable.cpp', frontend_params))
-            renders.append(
-                FileRender('dawn_native/ChainUtils.h',
-                           'src/dawn_native/ChainUtils_autogen.h',
-                           frontend_params))
-            renders.append(
-                FileRender('dawn_native/ChainUtils.cpp',
-                           'src/dawn_native/ChainUtils_autogen.cpp',
-                           frontend_params))
             renders.append(
                 FileRender('dawn_native/webgpu_absl_format.h',
                            'src/dawn_native/webgpu_absl_format_autogen.h',
