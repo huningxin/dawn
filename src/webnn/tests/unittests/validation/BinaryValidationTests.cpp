@@ -31,8 +31,6 @@ TEST_F(BinaryValidationTest, InputsType) {
         ml::ArrayBufferView arrayBuffer = {data.data(), data.size() * sizeof(float)};
         ml::Operand b = mBuilder.Constant(&inputDesc, &arrayBuffer);
         ml::Operand add = mBuilder.Add(a, b);
-        ml::Operand mul = mBuilder.Mul(a, b);
-        ml::Operand matmul = mBuilder.Matmul(a, b);
     }
     // inputs types are inconsistent
     {
@@ -41,7 +39,5 @@ TEST_F(BinaryValidationTest, InputsType) {
         ml::ArrayBufferView arrayBuffer = {data.data(), data.size() * sizeof(int32_t)};
         ml::Operand b = mBuilder.Constant(&inputDesc, &arrayBuffer);
         ASSERT_CONTEXT_ERROR(mBuilder.Add(a, b));
-        ASSERT_CONTEXT_ERROR(mBuilder.Mul(a, b));
-        ASSERT_CONTEXT_ERROR(mBuilder.Matmul(a, b));
     }
 }

@@ -111,13 +111,13 @@ dawn_json_generator("dawn_native_utils_gen") {
     "src/dawn_native/ChainUtils_autogen.cpp",
     "src/dawn_native/webgpu_absl_format_autogen.h",
     "src/dawn_native/webgpu_absl_format_autogen.cpp",
+    "src/dawn_native/ProcTable.cpp",
   ]
 }
 
 dawn_json_generator("webgpu_native_utils_gen") {
   target = "webgpu_native_utils"
   outputs = [
-    "src/dawn_native/ProcTable.cpp",
     "src/dawn_native/ObjectType_autogen.h",
     "src/dawn_native/ObjectType_autogen.cpp",
   ]

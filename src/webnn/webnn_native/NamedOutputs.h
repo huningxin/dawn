@@ -22,7 +22,12 @@
 
 namespace webnn_native {
 
-    class NamedOutputsBase : public NamedRecords<ArrayBufferView> {};
+    class NamedOutputsBase : public NamedRecords<ArrayBufferView> {
+      public:
+        static NamedOutputsBase* Create() {
+            return new NamedOutputsBase();
+        }
+    };
 
 }  // namespace webnn_native
 

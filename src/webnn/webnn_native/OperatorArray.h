@@ -25,16 +25,20 @@ namespace webnn_native {
         virtual ~OperatorArrayBase() = default;
 
         // WebNN API
-        size_t Size() {
+        size_t APISize() {
             return mOperators.size();
         }
 
-        void Set(OperatorBase* mlOperator) {
+        void APISet(OperatorBase* mlOperator) {
             mOperators.push_back(Ref<OperatorBase>(mlOperator));
         }
 
-        OperatorBase* GetOperator(size_t index) {
+        OperatorBase* APIGetOperator(size_t index) {
             return mOperators[index].Get();
+        }
+
+        static OperatorArrayBase* Create() {
+            return new OperatorArrayBase();
         }
 
         std::vector<Ref<OperatorBase>> mOperators;

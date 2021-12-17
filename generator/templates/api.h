@@ -109,6 +109,8 @@ typedef struct {{c_prefix}}ChainedStructOut {
 extern "C" {
 #endif
 
+typedef void (*{{c_prefix}}Proc)(void);
+
 {% for type in by_category["function pointer"] %}
     typedef {{as_cType(type.return_type.name)}} (*{{as_cType(type.name)}})(
         {%- for arg in type.arguments -%}
@@ -118,6 +120,8 @@ extern "C" {
 {% endfor %}
 
 #if !defined({{c_prefix}}_SKIP_PROCS)
+
+typedef {{c_prefix}}Proc (*{{c_prefix}}ProcGetProcAddress)(char const * procName);
 
 {% for function in by_category["function"] %}
     typedef {{as_cType(function.return_type.name)}} (*{{as_cProc(None, function.name)}})(
@@ -142,6 +146,8 @@ extern "C" {
 #endif  // !defined({{c_prefix}}_SKIP_PROCS)
 
 #if !defined({{c_prefix}}_SKIP_DECLARATIONS)
+
+{{c_prefix}}_EXPORT {{c_prefix}}Proc {{metadata.namespace}}GetProcAddress(char const * procName);
 
 {% for function in by_category["function"] %}
     {{c_prefix}}_EXPORT {{as_cType(function.return_type.name)}} {{as_cMethod(None, function.name)}}(

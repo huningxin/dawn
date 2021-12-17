@@ -20,9 +20,7 @@ import("${dawn_root}/src/webnn/webnn_generator.gni")
 
 group("webnn_tests") {
   testonly = true
-  deps = [
-    ":webnn_unittests",
-  ]
+  deps = [ ":webnn_unittests" ]
 }
 
 ###############################################################################
@@ -123,14 +121,7 @@ test("webnn_unittests") {
     #"//third_party/dawn/src/tests/unittests/ResultTests.cpp",
     "unittests/ErrorTests.cpp",
     "unittests/ObjectBaseTests.cpp",
-    "unittests/validation/BinaryValidationTests.cpp",
-    "unittests/validation/Conv2dValidationTests.cpp",
-    "unittests/validation/ErrorScopeValidationTests.cpp",
     "unittests/validation/GraphValidationTests.cpp",
-    "unittests/validation/PoolValidationTests.cpp",
-    "unittests/validation/ReshapeValidationTests.cpp",
-    "unittests/validation/TransposeValidationTests.cpp",
-    "unittests/validation/UnaryValidationTests.cpp",
     "unittests/validation/ValidationTest.cpp",
     "unittests/validation/ValidationTest.h",
   ]

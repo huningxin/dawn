@@ -22,7 +22,12 @@
 
 namespace webnn_native {
 
-    class NamedOperandsBase : public NamedRecords<OperandBase> {};
+    class NamedOperandsBase : public NamedRecords<OperandBase> {
+      public:
+        static NamedOperandsBase* Create() {
+            return new NamedOperandsBase();
+        }
+    };
 
 }  // namespace webnn_native
 

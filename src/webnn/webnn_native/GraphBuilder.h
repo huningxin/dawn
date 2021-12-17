@@ -32,78 +32,82 @@ namespace webnn_native {
         virtual ~GraphBuilderBase() = default;
 
         // WebNN API
-        OperandBase* Abs(OperandBase*);
-        OperandBase* Add(OperandBase*, OperandBase*);
-        OperandBase* AveragePool2d(OperandBase*, Pool2dOptions const* options);
-        OperandBase* BatchNorm(OperandBase*,
-                               OperandBase*,
-                               OperandBase*,
-                               BatchNormOptions const* options);
-        OperandBase* Clamp(OperandBase*, ClampOptions const* options);
-        OperatorBase* ClampOperator(ClampOptions const* options);
-        OperandBase* Ceil(OperandBase*);
-        OperandBase* Concat(uint32_t inputsCount, OperandBase* const* inputs, uint32_t axis);
-        OperandBase* Constant(OperandDescriptor const* desc, ArrayBufferView const* arrayBuffer);
-        OperandBase* Conv2d(OperandBase*, OperandBase*, Conv2dOptions const* options);
-        OperandBase* Cos(OperandBase*);
-        OperandBase* Div(OperandBase*, OperandBase*);
-        OperandBase* Exp(OperandBase*);
-        OperandBase* Floor(OperandBase*);
-        OperandBase* Gemm(OperandBase*, OperandBase*, GemmOptions const* options);
-        OperandArrayBase* Gru(OperandBase*,
-                              OperandBase*,
-                              OperandBase*,
-                              int32_t steps,
-                              int32_t hiddenSize,
-                              GruOptions const* options);
-        OperandBase* HardSwish(OperandBase*);
-        OperatorBase* HardSwishOperator();
-        OperandBase* Input(char const* name, OperandDescriptor const* desc);
-        OperandBase* InstanceNorm(OperandBase*, InstanceNormOptions const* options);
-        OperandBase* LeakyRelu(OperandBase*, LeakyReluOptions const* options);
-        OperatorBase* LeakyReluOperator(LeakyReluOptions const* options);
-        OperandBase* Log(OperandBase*);
-        OperandBase* Matmul(OperandBase* a, OperandBase* b);
-        OperandBase* Max(OperandBase*, OperandBase*);
-        OperandBase* MaxPool2d(OperandBase*, Pool2dOptions const* options);
-        OperandBase* Min(OperandBase*, OperandBase*);
-        OperandBase* Mul(OperandBase*, OperandBase*);
-        OperandBase* Neg(OperandBase*);
-        OperandBase* Pad(OperandBase*, OperandBase*, PadOptions const* options);
-        OperandBase* Pow(OperandBase*, OperandBase*);
-        OperandBase* ReduceL1(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceL2(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceMax(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceMean(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceMin(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceProduct(OperandBase*, ReduceOptions const* options);
-        OperandBase* ReduceSum(OperandBase*, ReduceOptions const* options);
-        OperandBase* Relu(OperandBase*);
-        OperatorBase* ReluOperator();
-        OperandBase* Resample(OperandBase*, ResampleOptions const* options);
-        OperandBase* Reshape(OperandBase*, int32_t const*, size_t);
-        OperandBase* Sigmoid(OperandBase*);
-        OperatorBase* SigmoidOperator();
-        OperandBase* Sin(OperandBase*);
-        OperandBase* Slice(OperandBase*,
-                           int32_t const* starts,
-                           uint32_t startsCount,
-                           int32_t const* sizes,
-                           uint32_t sizesCount,
-                           SliceOptions const* options);
-        OperandBase* Softmax(OperandBase*);
-        OperandArrayBase* Split(OperandBase*,
-                                uint32_t const*,
-                                uint32_t,
-                                SplitOptions const* options);
-        OperandBase* Squeeze(OperandBase*, SqueezeOptions const* options);
-        OperandBase* Sub(OperandBase*, OperandBase*);
-        OperandBase* Tan(OperandBase*);
-        OperandBase* Tanh(OperandBase*);
-        OperatorBase* TanhOperator();
-        OperandBase* Transpose(OperandBase*, TransposeOptions const* options);
+        OperandBase* APIAbs(OperandBase*);
+        OperandBase* APIAdd(OperandBase*, OperandBase*);
+        OperandBase* APIAveragePool2d(OperandBase*, Pool2dOptions const* options);
+        OperandBase* APIBatchNorm(OperandBase*,
+                                  OperandBase*,
+                                  OperandBase*,
+                                  BatchNormOptions const* options);
+        OperandBase* APIClamp(OperandBase*, ClampOptions const* options);
+        OperatorBase* APIClampOperator(ClampOptions const* options);
+        OperandBase* APICeil(OperandBase*);
+        OperandBase* APIConcat(uint32_t inputsCount, OperandBase* const* inputs, uint32_t axis);
+        OperandBase* APIConstant(OperandDescriptor const* desc, ArrayBufferView const* arrayBuffer);
+        OperandBase* APIConv2d(OperandBase*, OperandBase*, Conv2dOptions const* options);
+        OperandBase* APICos(OperandBase*);
+        OperandBase* APIDiv(OperandBase*, OperandBase*);
+        OperandBase* APIExp(OperandBase*);
+        OperandBase* APIFloor(OperandBase*);
+        OperandBase* APIGemm(OperandBase*, OperandBase*, GemmOptions const* options);
+        OperandArrayBase* APIGru(OperandBase*,
+                                 OperandBase*,
+                                 OperandBase*,
+                                 int32_t steps,
+                                 int32_t hiddenSize,
+                                 GruOptions const* options);
+        OperandBase* APIHardSwish(OperandBase*);
+        OperatorBase* APIHardSwishOperator();
+        OperandBase* APIInput(char const* name, OperandDescriptor const* desc);
+        OperandBase* APIInstanceNorm(OperandBase*, InstanceNormOptions const* options);
+        OperandBase* APILeakyRelu(OperandBase*, LeakyReluOptions const* options);
+        OperatorBase* APILeakyReluOperator(LeakyReluOptions const* options);
+        OperandBase* APILog(OperandBase*);
+        OperandBase* APIMatmul(OperandBase* a, OperandBase* b);
+        OperandBase* APIMax(OperandBase*, OperandBase*);
+        OperandBase* APIMaxPool2d(OperandBase*, Pool2dOptions const* options);
+        OperandBase* APIMin(OperandBase*, OperandBase*);
+        OperandBase* APIMul(OperandBase*, OperandBase*);
+        OperandBase* APINeg(OperandBase*);
+        OperandBase* APIPad(OperandBase*, OperandBase*, PadOptions const* options);
+        OperandBase* APIPow(OperandBase*, OperandBase*);
+        OperandBase* APIReduceL1(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceL2(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMax(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMean(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMin(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceProduct(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceSum(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIRelu(OperandBase*);
+        OperatorBase* APIReluOperator();
+        OperandBase* APIResample(OperandBase*, ResampleOptions const* options);
+        OperandBase* APIReshape(OperandBase*, int32_t const*, size_t);
+        OperandBase* APISigmoid(OperandBase*);
+        OperatorBase* APISigmoidOperator();
+        OperandBase* APISin(OperandBase*);
+        OperandBase* APISlice(OperandBase*,
+                              int32_t const* starts,
+                              uint32_t startsCount,
+                              int32_t const* sizes,
+                              uint32_t sizesCount,
+                              SliceOptions const* options);
+        OperandBase* APISoftmax(OperandBase*);
+        OperandArrayBase* APISplit(OperandBase*,
+                                   uint32_t const*,
+                                   uint32_t,
+                                   SplitOptions const* options);
+        OperandBase* APISqueeze(OperandBase*, SqueezeOptions const* options);
+        OperandBase* APISub(OperandBase*, OperandBase*);
+        OperandBase* APITan(OperandBase*);
+        OperandBase* APITanh(OperandBase*);
+        OperatorBase* APITanhOperator();
+        OperandBase* APITranspose(OperandBase*, TransposeOptions const* options);
 
-        GraphBase* Build(NamedOperandsBase const* namedOperands);
+        GraphBase* APIBuild(NamedOperandsBase const* namedOperands);
+
+        static GraphBuilderBase* Create(ContextBase* context) {
+            return new GraphBuilderBase(context);
+        }
 
       private:
         // Topological sort of nodes needed to compute rootNodes

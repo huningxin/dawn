@@ -29,11 +29,11 @@ namespace webnn_native {
         virtual ~NamedRecords() = default;
 
         // WebNN API
-        void Set(char const* name, const T* record) {
+        void APISet(char const* name, const T* record) {
             mRecords[std::string(name)] = record;
         }
 
-        T* Get(char const* name) const {
+        T* APIGet(char const* name) const {
             if (mRecords.find(std::string(name)) == mRecords.end()) {
                 return nullptr;
             }

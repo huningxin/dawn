@@ -33,14 +33,14 @@ namespace webnn_native {
         return CreateGraphImpl();
     }
 
-    void ContextBase::PushErrorScope(ml::ErrorFilter filter) {
+    void ContextBase::APIPushErrorScope(ml::ErrorFilter filter) {
         if (ConsumedError(ValidateErrorFilter(filter))) {
             return;
         }
         mCurrentErrorScope = AcquireRef(new ErrorScope(filter, mCurrentErrorScope.Get()));
     }
 
-    bool ContextBase::PopErrorScope(ml::ErrorCallback callback, void* userdata) {
+    bool ContextBase::APIPopErrorScope(ml::ErrorCallback callback, void* userdata) {
         if (DAWN_UNLIKELY(mCurrentErrorScope.Get() == mRootErrorScope.Get())) {
             return false;
         }
@@ -50,7 +50,7 @@ namespace webnn_native {
         return true;
     }
 
-    void ContextBase::SetUncapturedErrorCallback(ml::ErrorCallback callback, void* userdata) {
+    void ContextBase::APISetUncapturedErrorCallback(ml::ErrorCallback callback, void* userdata) {
         mRootErrorScope->SetCallback(callback, userdata);
     }
 

@@ -126,7 +126,7 @@ namespace {{api.lower()}}_wire { namespace client {
         static constexpr size_t sProcMapSize = sizeof(sProcMap) / sizeof(sProcMap[0]);
     }  // anonymous namespace
 
-    WGPUProc ClientGetProcAddress(WGPUDevice, const char* procName) {
+    WGPUProc ClientGetProcAddress(const char* procName) {
         if (procName == nullptr) {
             return nullptr;
         }
@@ -164,6 +164,7 @@ namespace {{api.lower()}}_wire { namespace client {
 
     {% set Prefix = metadata.proc_table_prefix %}
     static {{Prefix}}ProcTable gProcTable = {
+        ClientGetProcAddress,
         {% for function in by_category["function"] %}
             Client{{as_cppType(function.name)}},
         {% endfor %}

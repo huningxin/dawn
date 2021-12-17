@@ -40,9 +40,9 @@ namespace webnn_native {
         GraphBase* CreateGraph();
 
         // Dawn API
-        void PushErrorScope(ml::ErrorFilter filter);
-        bool PopErrorScope(ml::ErrorCallback callback, void* userdata);
-        void SetUncapturedErrorCallback(ml::ErrorCallback callback, void* userdata);
+        void APIPushErrorScope(ml::ErrorFilter filter);
+        bool APIPopErrorScope(ml::ErrorCallback callback, void* userdata);
+        void APISetUncapturedErrorCallback(ml::ErrorCallback callback, void* userdata);
         ContextOptions GetContextOptions() {
             return mContextOptions;
         }

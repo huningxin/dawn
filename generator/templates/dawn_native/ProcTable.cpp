@@ -14,19 +14,23 @@
 
 {% set Prefix = metadata.proc_table_prefix %}
 {% set prefix = Prefix.lower() %}
-#include "dawn_native/{{prefix}}_platform.h"
-#include "dawn_native/{{Prefix}}Native.h"
+{% set native_namespace = Name(metadata.native_namespace).snake_case() %}
+{% set impl_dir = metadata.impl_dir + "/" if metadata.impl_dir else "" %}
+{% set native_dir = impl_dir + native_namespace %}
+{% set c_prefix = metadata.c_prefix %}
+#include "{{native_dir}}/{{prefix}}_platform.h"
+#include "{{native_dir}}/{{Prefix}}Native.h"
 
 #include <algorithm>
 #include <vector>
 
 {% for type in by_category["object"] %}
     {% if type.name.canonical_case() not in ["texture view"] %}
-        #include "dawn_native/{{type.name.CamelCase()}}.h"
+        #include "{{native_dir}}/{{type.name.CamelCase()}}.h"
     {% endif %}
 {% endfor %}
 
-namespace dawn_native {
+namespace {{native_namespace}} {
 
     {% for type in by_category["object"] %}
         {% for method in c_methods(type) %}
@@ -75,23 +79,33 @@ namespace dawn_native {
     namespace {
 
         struct ProcEntry {
-            WGPUProc proc;
+            {{c_prefix}}Proc proc;
             const char* name;
         };
         static const ProcEntry sProcMap[] = {
             {% for (type, method) in c_methods_sorted_by_name %}
-                { reinterpret_cast<WGPUProc>(Native{{as_MethodSuffix(type.name, method.name)}}), "{{as_cMethod(type.name, method.name)}}" },
+                { reinterpret_cast<{{c_prefix}}Proc>(Native{{as_MethodSuffix(type.name, method.name)}}), "{{as_cMethod(type.name, method.name)}}" },
             {% endfor %}
         };
         static constexpr size_t sProcMapSize = sizeof(sProcMap) / sizeof(sProcMap[0]);
 
     }  // anonymous namespace
 
-    WGPUInstance NativeCreateInstance(WGPUInstanceDescriptor const* descriptor) {
-        return ToAPI(InstanceBase::Create(FromAPI(descriptor)));
-    }
+    {% for function in by_category["function"] %}
+        {{as_cType(function.return_type.name)}} Native{{as_cppType(function.name)}}(
+            {%- for arg in function.arguments -%}
+                {% if not loop.first %}, {% endif %}{{as_annotated_cType(arg)}}
+            {%- endfor -%}
+        ) {
+            return ToAPI({{as_cppType(function.return_type.name)}}Base::Create(
+                {%- for arg in function.arguments -%}
+                FromAPI({% if not loop.first %}, {% endif %}{{as_varName(arg.name)}})
+                {%- endfor -%}
+            ));
+        }
+    {% endfor %}
 
-    WGPUProc NativeGetProcAddress(WGPUDevice, const char* procName) {
+    {{c_prefix}}Proc NativeGetProcAddress(const char* procName) {
         if (procName == nullptr) {
             return nullptr;
         }
@@ -106,14 +120,17 @@ namespace dawn_native {
             return entry->proc;
         }
 
-        // Special case the two free-standing functions of the API.
-        if (strcmp(procName, "wgpuGetProcAddress") == 0) {
-            return reinterpret_cast<WGPUProc>(NativeGetProcAddress);
+        // Special case the free-standing functions of the API.
+        if (strcmp(procName, "{{metadata.namespace}}GetProcAddress") == 0) {
+            return reinterpret_cast<{{c_prefix}}Proc>(NativeGetProcAddress);
         }
 
-        if (strcmp(procName, "wgpuCreateInstance") == 0) {
-            return reinterpret_cast<WGPUProc>(NativeCreateInstance);
-        }
+        {% for function in by_category["function"] %}
+            if (strcmp(procName, "{{metadata.namespace}}{{as_cppType(function.name)}}") == 0) {
+                return reinterpret_cast<{{c_prefix}}Proc>(Native{{as_cppType(function.name)}});
+            }
+
+        {% endfor %}
 
         return nullptr;
     }
@@ -128,6 +145,7 @@ namespace dawn_native {
     }
 
     static {{Prefix}}ProcTable gProcTable = {
+        NativeGetProcAddress,
         {% for function in by_category["function"] %}
             Native{{as_cppType(function.name)}},
         {% endfor %}

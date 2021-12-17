@@ -23,7 +23,12 @@
 
 namespace webnn_native {
 
-    class NamedInputsBase : public NamedRecords<Input> {};
+    class NamedInputsBase : public NamedRecords<Input> {
+      public:
+        static NamedInputsBase* Create() {
+            return new NamedInputsBase();
+        }
+    };
 
 }  // namespace webnn_native
 

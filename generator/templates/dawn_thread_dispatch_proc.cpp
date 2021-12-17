@@ -15,6 +15,11 @@ void {{prefix}}ProcSetPerThreadProcs(const {{Prefix}}ProcTable* procs) {
     }
 }
 
+static {{metadata.c_prefix}}Proc ThreadDispatchGetProcAddress(const char* procName) {
+    return perThreadProcs.getProcAddress(procName);
+}
+
+
 {% for function in by_category["function"] %}
     static {{as_cType(function.return_type.name)}} ThreadDispatch{{as_cppType(function.name)}}(
         {%- for arg in function.arguments -%}
@@ -50,6 +55,7 @@ void {{prefix}}ProcSetPerThreadProcs(const {{Prefix}}ProcTable* procs) {
 
 extern "C" {
     {{Prefix}}ProcTable {{prefix}}ThreadDispatchProcTable = {
+        ThreadDispatchGetProcAddress,
         {% for function in by_category["function"] %}
             ThreadDispatch{{as_cppType(function.name)}},
         {% endfor %}

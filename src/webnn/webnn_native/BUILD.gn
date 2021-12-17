@@ -61,7 +61,7 @@ config("webnn_native_internal") {
 webnn_json_generator("webnn_native_utils_gen") {
   target = "dawn_native_utils"
   outputs = [
-    #"src/dawn_native/WebnnProcTable.cpp",
+    "src/webnn/webnn_native/ProcTable.cpp",
     "src/webnn/webnn_native/ml_structs_autogen.h",
     "src/webnn/webnn_native/ml_structs_autogen.cpp",
     "src/webnn/webnn_native/ValidationUtils_autogen.h",
@@ -78,8 +78,7 @@ webnn_json_generator("webnn_native_utils_gen") {
 # dependencies of webnn_native
 source_set("webnn_native_headers") {
   public_deps = [ "${dawn_root}/src/webnn:webnncpp_headers" ]
-  all_dependent_configs =
-      [ "${dawn_root}/src/common:dawn_public_include_dirs" ]
+  all_dependent_configs = [ "${dawn_root}/src/common:dawn_public_include_dirs" ]
   sources = [
     "${dawn_root}/src/include/dawn_native/WebnnNative.h",
     "${dawn_root}/src/include/dawn_native/webnn_native_export.h",
@@ -110,7 +109,6 @@ source_set("webnn_native_sources") {
   ]
 
   sources = get_target_outputs(":webnn_native_utils_gen")
-  sources += [ "WebnnProcTable.cpp" ]
 
   sources += [
     "Context.cpp",
@@ -177,7 +175,6 @@ source_set("webnn_native_sources") {
       "null/ContextNull.h",
     ]
   }
-
 }
 
 # The static and shared libraries for webnn_native. Most of the files are
@@ -200,4 +197,3 @@ dawn_component("webnn_native") {
     "WEBNN_NATIVE_IMPLEMENTATION",
   ]
 }
-
