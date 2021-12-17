@@ -109,14 +109,14 @@ dawn_json_generator("dawn_native_utils_gen") {
     "src/dawn_native/ValidationUtils_autogen.cpp",
     "src/dawn_native/ChainUtils_autogen.h",
     "src/dawn_native/ChainUtils_autogen.cpp",
+    "src/dawn_native/webgpu_absl_format_autogen.h",
+    "src/dawn_native/webgpu_absl_format_autogen.cpp",
   ]
 }
 
 dawn_json_generator("webgpu_native_utils_gen") {
   target = "webgpu_native_utils"
   outputs = [
-    "src/dawn_native/webgpu_absl_format_autogen.h",
-    "src/dawn_native/webgpu_absl_format_autogen.cpp",
     "src/dawn_native/ProcTable.cpp",
     "src/dawn_native/ObjectType_autogen.h",
     "src/dawn_native/ObjectType_autogen.cpp",
@@ -339,6 +339,8 @@ source_set("dawn_native_sources") {
     "VertexFormat.cpp",
     "VertexFormat.h",
     "dawn_platform.h",
+    "webgpu_absl_format.cpp",
+    "webgpu_absl_format.h",
     "utils/WGPUHelpers.cpp",
     "utils/WGPUHelpers.h",
   ]

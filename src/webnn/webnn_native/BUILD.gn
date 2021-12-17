@@ -29,6 +29,17 @@ if (is_mac) {
   }
 }
 
+group("dawn_abseil") {
+  # When build_with_chromium=true we need to include "//third_party/abseil-cpp:absl" while
+  # it's beneficial to be more specific with standalone Dawn, especially when it comes to
+  # including it as a dependency in other projects (such as Skia).
+  if (build_with_chromium) {
+    public_deps = [ "$dawn_abseil_dir:absl" ]
+  } else {
+    public_deps = [ "${dawn_root}/third_party/gn/abseil-cpp:str_format" ]
+  }
+}
+
 config("webnn_native_internal") {
   configs = [ "${dawn_root}/src/common:dawn_internal" ]
 
@@ -58,6 +69,8 @@ webnn_json_generator("webnn_native_utils_gen") {
     "src/webnn/webnn_native/webnn_platform_autogen.h",
     "src/webnn/webnn_native/ChainUtils_autogen.h",
     "src/webnn/webnn_native/ChainUtils_autogen.cpp",
+    "src/webnn/webnn_native/webnn_absl_format_autogen.h",
+    "src/webnn/webnn_native/webnn_absl_format_autogen.cpp",
   ]
 }
 
@@ -90,6 +103,11 @@ source_set("webnn_native_sources") {
   libs = []
 
   configs += [ ":webnn_native_internal" ]
+
+  public_deps = [
+    ":dawn_abseil",
+    "${dawn_root}/src/dawn_platform",
+  ]
 
   sources = get_target_outputs(":webnn_native_utils_gen")
   sources += [ "WebnnProcTable.cpp" ]
