@@ -336,6 +336,49 @@ source_set("sources") {
     "webgpu_absl_format.h",
   ]
 
+  # webnn_native
+  sources += [
+    "Graph.cpp",
+    "Graph.h",
+    "GraphBuilder.cpp",
+    "GraphBuilder.h",
+    "NamedOperands.h",
+    "NamedRecords.h",
+    "NamedResources.h",
+    "Operand.cpp",
+    "Operand.h",
+    "Operator.cpp",
+    "Operator.h",
+    "ops/BatchNorm.cpp",
+    "ops/BatchNorm.h",
+    "ops/Binary.cpp",
+    "ops/Binary.h",
+    "ops/Clamp.h",
+    "ops/Concat.cpp",
+    "ops/Concat.h",
+    "ops/Conv2d.cpp",
+    "ops/Conv2d.h",
+    "ops/Constant.h",
+    "ops/Gemm.cpp",
+    "ops/Gemm.h",
+    "ops/LeakyRelu.h",
+    "ops/Input.h",
+    "ops/Pad.cpp",
+    "ops/Pad.h",
+    "ops/Pool2d.cpp",
+    "ops/Pool2d.h",
+    "ops/Reduce.cpp",
+    "ops/Reduce.h",
+    "ops/Resample2d.cpp",
+    "ops/Resample2d.h",
+    "ops/Reshape.cpp",
+    "ops/Reshape.h",
+    "ops/Transpose.cpp",
+    "ops/Transpose.h",
+    "ops/Unary.cpp",
+    "ops/Unary.h",
+  ]
+
   if (dawn_use_x11) {
     libs += [ "X11" ]
     sources += [
@@ -449,6 +492,60 @@ source_set("sources") {
       "d3d12/UtilsD3D12.h",
       "d3d12/d3d12_platform.h",
     ]
+
+    # webnn_native dml backend
+    sources += [
+      "dml/deps/src/dmldevice.cpp",
+      "dml/deps/src/dmldevice.h",
+      "dml/deps/src/model.h",
+      "dml/deps/src/precomp.h",
+      "dml/deps/src/typeconvert.h",
+      "dml/deps/src/util.cpp",
+      "dml/deps/src/util.h",
+    ]
+
+    sources += [
+      "dml/GraphBuilderDML.cpp",
+      "dml/GraphBuilderDML.h",
+      "dml/GraphDML.cpp",
+      "dml/GraphDML.h",
+    ]
+
+    include_dirs = [
+      "${dawn_root}/",
+      "${dawn_root}/third_party/DirectML/Libraries",
+      "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/include",
+    ]
+
+    lib_dirs =
+        [ "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/bin/x64-win" ]
+
+    libs += [
+      "directml.lib",
+    ]
+
+    cflags = [
+      "/std:c++17",
+      "-Wno-address-of-temporary",
+      "-Wno-logical-not-parentheses",
+      "-Wno-macro-redefined",
+      # Allow the use of DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE); in DirectML.h
+      "-Wno-extra-semi",
+
+      # Allow the use of DMLX_THROW(_hr); in DirectMLX.h
+      "-Wno-extra-semi-stmt",
+
+      # Allow the use of DML_OPERATOR_GRAPH_NODE_DESC{ node.op.Get() } in DirectMLX.h
+      "-Wno-missing-field-initializers",
+
+      # Allow third_party/onnxruntime/include/onnxruntime/core/common/status.h(115,9):
+      # use of the 'nodiscard' attribute is a C++17 extension
+      "-Wno-c++17-extensions",
+
+      "-Wno-c++98-compat-extra-semi",
+    ]
+
+    data_deps += [ ":copy_dml_dll" ]
   }
 
   if (dawn_enable_metal) {
@@ -770,4 +867,13 @@ dawn_component("webgpu_dawn") {
     ":static",
     ":webgpu_dawn_native_proc_gen",
   ]
+}
+
+dml_dll = "DirectML.dll"
+os_folder = "x64-win"
+dml_dll_path =
+    "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/bin/${os_folder}"
+copy("copy_dml_dll") {
+  sources = [ "${dml_dll_path}/${dml_dll}" ]
+  outputs = [ "$root_out_dir/{{source_file_part}}" ]
 }
