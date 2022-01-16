@@ -54,6 +54,14 @@ namespace dawn::native {
 
     class DeviceBase;
 
+    class ContextBase;
+    class GraphBase;
+    class GraphBuilderBase;
+    class NamedOperandsBase;
+    class NamedResourcesBase;
+    class OperandBase;
+    class OperatorBase;
+
     template <typename T>
     class PerStage;
 

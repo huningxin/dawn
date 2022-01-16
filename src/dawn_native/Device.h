@@ -54,6 +54,8 @@ namespace dawn::native {
     struct InternalPipelineStore;
     struct ShaderModuleParseResult;
 
+    class GraphBuilderBase;
+
     class DeviceBase : public RefCounted {
       public:
         DeviceBase(AdapterBase* adapter, const DeviceDescriptor* descriptor);
@@ -229,6 +231,7 @@ namespace dawn::native {
             const TextureViewDescriptor* descriptor);
 
         // Implementation of API object creation methods. DO NOT use them in a reentrant manner.
+        GraphBuilderBase* APICreateGraphBuilder();
         BindGroupBase* APICreateBindGroup(const BindGroupDescriptor* descriptor);
         BindGroupLayoutBase* APICreateBindGroupLayout(const BindGroupLayoutDescriptor* descriptor);
         BufferBase* APICreateBuffer(const BufferDescriptor* descriptor);

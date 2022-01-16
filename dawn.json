@@ -941,6 +941,10 @@
         "category": "object",
         "methods": [
             {
+                "name": "create graph builder",
+                "returns": "graph builder"
+            },
+            {
                 "name": "create bind group",
                 "returns": "bind group",
                 "args": [
@@ -2749,6 +2753,116 @@
         "tags": ["dawn"],
         "members": [
             {"name": "use internal usages", "type": "bool", "default": "false"}
+        ]
+    },
+    "operand type": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "float32"},
+            {"value": 1, "name": "float16"},
+            {"value": 2, "name": "int32"},
+            {"value": 3, "name": "uint32"},
+            {"value": 4, "name": "int8"},
+            {"value": 5, "name": "uint8"}
+        ]
+    },
+    "operand descriptor": {
+        "category": "structure",
+        "members": [
+            {"name": "type", "type": "operand type"},
+            {"name": "dimensions", "type": "int32_t", "annotation": "const*", "length": "dimensions count"},
+            {"name": "dimensions count", "type": "uint32_t", "default": 0}
+        ]
+    },
+    "operand": {
+        "category": "object"
+    },
+    "named operands": {
+        "category": "object",
+        "methods": [
+            {
+                "name": "set",
+                "args": [
+                    {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+                    {"name": "operand", "type": "operand"}
+                ]
+            }
+        ]
+    },
+    "buffer resource view": {
+        "category": "structure",
+        "members": [
+            {"name": "resource", "type": "buffer"},
+            {"name": "offset", "type": "uint64_t", "default": 0},
+            {"name": "size", "type": "uint64_t"}
+        ]
+    },
+    "graph builder": {
+        "category": "object",
+        "methods": [
+            {
+                "name": "input",
+                "returns": "operand",
+                "args": [
+                    {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+                    {"name": "desc", "type": "operand descriptor", "annotation": "const*"}
+                ]
+            },
+            {
+                "name": "constant",
+                "returns": "operand",
+                "args": [
+                    {"name": "desc", "type": "operand descriptor", "annotation": "const*"},
+                    {"name": "value", "type": "buffer resource view", "annotation": "const*"}
+                ]
+            },
+            {
+                "name": "relu",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"}
+                ]
+            },
+            {
+                "name": "create named operands",
+                "returns": "named operands"
+            },
+            {
+                "name": "build",
+                "returns": "graph",
+                "args": [
+                  {"name": "named operands", "type": "named operands"}
+                ]
+            }
+        ]
+    },
+    "named resources": {
+        "category": "object",
+        "methods": [
+            {
+                "name": "set",
+                "args": [
+                    {"name": "name", "type": "char", "annotation": "const*", "length": "strlen"},
+                    {"name": "resource", "type": "buffer resource view", "annotation": "const*"}
+                ]
+            }
+        ]
+    },
+    "graph": {
+        "category": "object",
+        "methods": [
+            {
+                "name": "create named resources",
+                "returns": "named resources"
+            },
+            {
+              "name": "compute",
+              "returns": "void",
+              "args": [
+                {"name": "inputs", "type": "named resources"},
+                {"name": "outputs", "type": "named resources"}
+              ]
+            }
         ]
     }
 }

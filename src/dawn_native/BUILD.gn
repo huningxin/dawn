@@ -331,10 +331,29 @@ source_set("dawn_native_sources") {
     "VertexFormat.cpp",
     "VertexFormat.h",
     "dawn_platform.h",
-    "webgpu_absl_format.cpp",
-    "webgpu_absl_format.h",
     "utils/WGPUHelpers.cpp",
     "utils/WGPUHelpers.h",
+    "webgpu_absl_format.cpp",
+    "webgpu_absl_format.h",
+  ]
+
+  # webnn_native
+  sources += [
+    "Graph.cpp",
+    "Graph.h",
+    "GraphBuilder.cpp",
+    "GraphBuilder.h",
+    "NamedOperands.h",
+    "NamedRecords.h",
+    "NamedResources.h",
+    "Operand.cpp",
+    "Operand.h",
+    "Operator.cpp",
+    "Operator.h",
+    "ops/Constant.h",
+    "ops/Input.h",
+    "ops/Unary.cpp",
+    "ops/Unary.h",
   ]
 
   if (dawn_use_x11) {

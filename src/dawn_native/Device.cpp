@@ -48,6 +48,8 @@
 #include "dawn_platform/tracing/TraceEvent.h"
 #include "utils/WGPUHelpers.h"
 
+#include "dawn_native/GraphBuilder.h"
+
 #include <array>
 #include <mutex>
 #include <unordered_set>
@@ -920,6 +922,13 @@ namespace dawn::native {
     }
 
     // Object creation API methods
+    GraphBuilderBase* DeviceBase::APICreateGraphBuilder() {
+        Ref<GraphBuilderBase> builder = GraphBuilderBase::Create(this);
+        if (!builder->Initialize()) {
+            return GraphBuilderBase::MakeError(this);
+        }
+        return builder.Detach();
+    }
 
     BindGroupBase* DeviceBase::APICreateBindGroup(const BindGroupDescriptor* descriptor) {
         Ref<BindGroupBase> result;
