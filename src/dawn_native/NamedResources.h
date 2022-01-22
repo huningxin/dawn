@@ -23,7 +23,24 @@
 
 namespace dawn::native {
 
-    class NamedResourcesBase : public NamedRecords<BufferResourceView> {};
+    class NamedResourcesBase : public RefCounted {
+      public:
+        NamedResourcesBase() = default;
+        virtual ~NamedResourcesBase() = default;
+
+        // WebNN API
+        void APISet(char const* name, const BufferResourceView* record) {
+            mResources[std::string(name)] = *record;
+        }
+
+        // Other methods
+        const std::map<std::string, BufferResourceView>& GetResources() const {
+            return mResources;
+        }
+
+      private:
+        std::map<std::string, BufferResourceView> mResources;
+    };
 
 }  // namespace webnn_native
 

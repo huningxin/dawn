@@ -44,7 +44,7 @@ namespace dawn::native {
         NamedOperandsBase* APICreateNamedOperands();
         GraphBase* APIBuild(NamedOperandsBase const* namedOperands);
 
-      private:
+      protected:
         GraphBuilderBase(DeviceBase* context);
         GraphBuilderBase(DeviceBase* device, ObjectBase::ErrorTag tag);
         virtual ~GraphBuilderBase() = default;

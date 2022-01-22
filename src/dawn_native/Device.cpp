@@ -48,7 +48,7 @@
 #include "dawn_platform/tracing/TraceEvent.h"
 #include "utils/WGPUHelpers.h"
 
-#include "dawn_native/GraphBuilder.h"
+#include "dawn_native/dml/GraphBuilderDML.h"
 
 #include <array>
 #include <mutex>
@@ -923,7 +923,7 @@ namespace dawn::native {
 
     // Object creation API methods
     GraphBuilderBase* DeviceBase::APICreateGraphBuilder() {
-        Ref<GraphBuilderBase> builder = GraphBuilderBase::Create(this);
+        Ref<GraphBuilderBase> builder = dml::GraphBuilder::Create(this);
         if (!builder->Initialize()) {
             return GraphBuilderBase::MakeError(this);
         }

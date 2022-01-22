@@ -469,6 +469,62 @@ source_set("dawn_native_sources") {
       "d3d12/UtilsD3D12.h",
       "d3d12/d3d12_platform.h",
     ]
+
+    # dml backend
+    sources += [
+      "dml/deps/src/dmldevice.cpp",
+      "dml/deps/src/dmldevice.h",
+      "dml/deps/src/model.h",
+      "dml/deps/src/precomp.h",
+      "dml/deps/src/typeconvert.h",
+      "dml/deps/src/util.cpp",
+      "dml/deps/src/util.h",
+    ]
+
+    sources += [
+      "dml/GraphBuilderDML.cpp",
+      "dml/GraphBuilderDML.h",
+      "dml/GraphDML.cpp",
+      "dml/GraphDML.h",
+    ]
+
+    include_dirs = [
+      "${dawn_root}/",
+      "${dawn_root}/third_party/DirectML/Libraries",
+      "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/include",
+    ]
+
+    lib_dirs =
+        [ "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/bin/x64-win" ]
+
+    libs += [
+      "dxgi.lib",
+      "d3d12.lib",
+      "directml.lib",
+    ]
+
+    cflags = [
+      "/std:c++17",
+      "-Wno-address-of-temporary",
+      "-Wno-logical-not-parentheses",
+      "-Wno-macro-redefined",
+      # Allow the use of DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE); in DirectML.h
+      "-Wno-extra-semi",
+
+      # Allow the use of DMLX_THROW(_hr); in DirectMLX.h
+      "-Wno-extra-semi-stmt",
+
+      # Allow the use of DML_OPERATOR_GRAPH_NODE_DESC{ node.op.Get() } in DirectMLX.h
+      "-Wno-missing-field-initializers",
+
+      # Allow third_party/onnxruntime/include/onnxruntime/core/common/status.h(115,9):
+      # use of the 'nodiscard' attribute is a C++17 extension
+      "-Wno-c++17-extensions",
+
+      "-Wno-c++98-compat-extra-semi",
+    ]
+
+    deps += [ "${dawn_root}/third_party/gpgmm/src:gpgmm" ]
   }
 
   if (dawn_enable_metal) {
