@@ -521,6 +521,8 @@ source_set("dawn_native_sources") {
 
       "-Wno-c++98-compat-extra-semi",
     ]
+
+    data_deps += [ ":copy_dml_dll" ]
   }
 
   if (dawn_enable_metal) {
@@ -847,4 +849,13 @@ dawn_component("webgpu_dawn") {
     ":dawn_native_static",
     ":webgpu_dawn_native_proc_gen",
   ]
+}
+
+dml_dll = "DirectML.dll"
+os_folder = "x64-win"
+dml_dll_path =
+    "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/bin/${os_folder}"
+copy("copy_dml_dll") {
+  sources = [ "${dml_dll_path}/${dml_dll}" ]
+  outputs = [ "$root_out_dir/{{source_file_part}}" ]
 }
