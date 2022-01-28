@@ -6,20 +6,12 @@
 
 #pragma once
 
-#include <gpgmm_d3d12.h>
-
 namespace pydml
 {
-    class SVDescriptorHeap : public gpgmm::d3d12::Heap {
-      public:
-        SVDescriptorHeap(ComPtr<ID3D12DescriptorHeap> heap, uint64_t size);
-        ComPtr<ID3D12DescriptorHeap> m_Heap;
-    };
-
     class Device
     {
     public:
-        explicit Device(ID3D12Device* d3d12Device, Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue, bool useDebugLayer = false);
+        explicit Device(dawn_native::d3d12::Device* dawnDevice, bool useDebugLayer = false);
 
         HRESULT Init();
 
@@ -56,24 +48,14 @@ namespace pydml
             std::vector<pydml::TensorData*>& outputData
             );
 
-        HRESULT EnsureUploadHeapSize(uint64_t requestedSizeInBytes);
-        HRESULT EnsureReadBackHeapSize(uint64_t requestedSizeInBytes);
-        HRESULT EnsureCpuOrDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer);
-        HRESULT EnsureCpuBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer);
-        HRESULT EnsureDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer);
+        HRESULT EnsureCpuOrDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<ID3D12Resource>& buffer);
+        HRESULT EnsureCpuBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<ID3D12Resource>& buffer);
+        HRESULT EnsureDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ Microsoft::WRL::ComPtr<ID3D12Resource>& buffer);
         HRESULT EnsureDescriptorHeapSize(uint32_t requestedSizeInDescriptors);
 
-        HRESULT ClearGpuBuffers(dml::Span<ID3D12Resource*> buffers);
+        HRESULT ClearGpuBuffers(ID3D12GraphicsCommandList* commandList, dml::Span<ID3D12Resource*> buffers);
 
-        HRESULT ExecuteCommandListAndWait();
-
-        Microsoft::WRL::ComPtr<ID3D12Device> m_d3d12Device;
-        Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocator> m_resourceAllocator;
-            
-        gpgmm::d3d12::ResidencyManager* m_residencyManager = nullptr; // WeakPtr since it is owned by m_resourceAllocator
+        Ref<dawn_native::d3d12::Device> m_dawnDevice;
 
         // GPU- and CPU-visible descriptor heaps used for ClearUnorderedAccessView
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_clearUavDescriptorHeapGpu;
@@ -85,18 +67,14 @@ namespace pydml
         Microsoft::WRL::ComPtr<IDMLBindingTable> m_bindingTable;
 
         // Lazily-initialized resources for operator initialization/execution
-        std::unique_ptr<SVDescriptorHeap> m_descriptorHeap;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_uploadHeap;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_readbackHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
 
         // DEFAULT heap buffers to hold input tensors, output tensors, and temporary and persistent resources. The input
         // and output resources are suballocated for operators that have multiple inputs or outputs.
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_inputsResource;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_outputsResource;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_temporaryResource;
-        Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation> m_persistentResource;
-
-        gpgmm::d3d12::ResidencySet m_residencySet;
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_inputsResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_outputsResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_temporaryResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_persistentResource;
 
         bool m_useCpuCustomHeapResources = false;
         bool m_useGpu = true;

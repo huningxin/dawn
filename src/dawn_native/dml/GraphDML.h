@@ -28,7 +28,7 @@
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Unary.h"
 
-namespace dawn_native { namespace dml {
+namespace dawn::native { namespace dml {
 
     std::string DmlTensorDimensionsToString(const ::dml::TensorDimensions&);
     std::string DmlTensorDataTypeToString(DML_TENSOR_DATA_TYPE type);
@@ -60,15 +60,15 @@ namespace dawn_native { namespace dml {
         std::mutex mMutex;
         std::unique_ptr<::dml::Graph> mGraph;
         std::map<const OperandBase*, ::dml::Expression> mExpression;
-        std::vector<std::unique_ptr<::pydml::Binding>> mBindings;
+        std::vector<std::unique_ptr<::pydml::Binding>> mInputBindings;
+        std::vector<std::unique_ptr<::pydml::Binding>> mOutputBindings;
         std::unordered_set<const OperandBase*> mConstantSet;
-        std::vector<::pydml::Binding*> mConstants;
         std::vector<::dml::Expression> mOutputExpressions;
         std::map<std::string, ::pydml::Binding*> mInputs;
         std::map<std::string, ::pydml::Binding*> mOutputs;
         std::unique_ptr<pydml::CompiledModel> mCompiledModel;
     };
 
-}}  // namespace dawn_native::dml
+}}  // namespace dawn::native::dml
 
 #endif  // WEBNN_NATIVE_DML_GRAPH_DML_H_

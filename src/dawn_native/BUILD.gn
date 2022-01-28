@@ -498,8 +498,6 @@ source_set("dawn_native_sources") {
         [ "${dawn_root}/third_party/microsoft.ai.directml.1.5.1/bin/x64-win" ]
 
     libs += [
-      "dxgi.lib",
-      "d3d12.lib",
       "directml.lib",
     ]
 
@@ -523,8 +521,6 @@ source_set("dawn_native_sources") {
 
       "-Wno-c++98-compat-extra-semi",
     ]
-
-    deps += [ "${dawn_root}/third_party/gpgmm/src:gpgmm" ]
   }
 
   if (dawn_enable_metal) {

@@ -17,7 +17,7 @@
 #include "common/RefCounted.h"
 #include "dawn_native/dml/GraphDML.h"
 
-namespace dawn_native { namespace dml {
+namespace dawn::native { namespace dml {
 
     // static
     GraphBuilder* GraphBuilder::Create(DeviceBase* device) {
@@ -35,4 +35,4 @@ namespace dawn_native { namespace dml {
         return new Graph(GetDevice());
     }
 
-}}  // namespace dawn_native::dml
+}}  // namespace dawn::native::dml

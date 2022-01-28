@@ -10,17 +10,16 @@
 #include "common/Assert.h"
 #include "common/Log.h"
 
-#include <gpgmm_d3d12.h>
-
 #define FAILED(hr) (((HRESULT)(hr)) < 0)
 
-#define ReturnIfFailed(hr) \
-{ \
-    if (FAILED(hr)) \
-    { \
-        dawn::ErrorLog() << "HRESULT " << std::hex << hr; \
-        return hr; \
-    } \
+inline HRESULT ReturnIfFailed(HRESULT hr)
+{
+    if (FAILED(hr))
+    {
+        dawn::ErrorLog() << "HRESULT " << std::hex << hr;
+        return hr;
+    }
+    return hr;
 }
 
 inline void ThrowIfNull(void* p)
@@ -116,37 +115,30 @@ struct DmlBufferArrayBinding
     }
 };
 
-inline void UpdateResidencyIfNeeded(gpgmm::d3d12::ResourceAllocation* resource, gpgmm::d3d12::ResidencySet* residencySet){
-    if (resource == nullptr) return;
-    resource->UpdateResidency(residencySet);
-}
-
-inline HRESULT CreateResource(
-    gpgmm::d3d12::ResourceAllocator* resourceAllocator,
+inline HRESULT CreateCommittedResource(
+    ID3D12Device* device,
     const D3D12_RESOURCE_DESC& resourceDesc,
     const D3D12_HEAP_PROPERTIES& heapProperties,
     D3D12_RESOURCE_STATES initialState,
-    Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& resource
+    Microsoft::WRL::ComPtr<ID3D12Resource>& resource
     )
 {
-    gpgmm::d3d12::ALLOCATION_DESC desc = {};
-    desc.HeapType = heapProperties.Type;
-
-    ReturnIfFailed(resourceAllocator->CreateResource(
-        desc,
-        resourceDesc,
+    ReturnIfFailed(device->CreateCommittedResource(
+        &heapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &resourceDesc,
         initialState,
         nullptr,
-        &resource
+        IID_GRAPHICS_PPV_ARGS(resource.GetAddressOf())
         ));
 
     return S_OK;
 }
 
 inline HRESULT CreateCpuCustomBuffer(
-    gpgmm::d3d12::ResourceAllocator* resourceAllocator,
+    ID3D12Device* device,
     UINT64 sizeInBytes,
-    Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& resource,
+    Microsoft::WRL::ComPtr<ID3D12Resource>& resource,
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
     )
 {
@@ -158,8 +150,8 @@ inline HRESULT CreateCpuCustomBuffer(
         0
     };
 
-    return CreateResource(
-        resourceAllocator,
+    return CreateCommittedResource(
+        device,
         CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes, flags),
         heapProperties,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -168,14 +160,14 @@ inline HRESULT CreateCpuCustomBuffer(
 }
 
 inline HRESULT CreateDefaultBuffer(
-    gpgmm::d3d12::ResourceAllocator* resourceAllocator,
+    ID3D12Device* device,
     UINT64 sizeInBytes,
-    Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& resource,
+    Microsoft::WRL::ComPtr<ID3D12Resource>& resource,
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
     )
 {
-    return CreateResource(
-        resourceAllocator,
+    return CreateCommittedResource(
+        device,
         CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes, flags),
         CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -183,10 +175,10 @@ inline HRESULT CreateDefaultBuffer(
         );
 }
 
-inline HRESULT CreateReadBackBuffer(gpgmm::d3d12::ResourceAllocator* resourceAllocator, UINT64 sizeInBytes, Microsoft::WRL::ComPtr<gpgmm::d3d12::ResourceAllocation>& resource)
+inline HRESULT CreateReadBackBuffer(ID3D12Device* device, UINT64 sizeInBytes, Microsoft::WRL::ComPtr<ID3D12Resource>& resource)
 {
-    return CreateResource(
-        resourceAllocator,
+    return CreateCommittedResource(
+        device,
         CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes),
         CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
         D3D12_RESOURCE_STATE_COPY_DEST,

@@ -25,47 +25,33 @@ namespace pydml
 
     struct TensorData
     {
-        TensorData(ID3D12Resource* buffer,
+        TensorData(dawn_native::d3d12::Buffer* buffer,
                    size_t size,
                    size_t offset = 0) :
-            buffer(buffer),
+            buffer(AcquireRef(buffer)),
             size(size),
             offset(offset) {}
 
-        TensorData(dml::TensorDesc* desc) :
-            size(desc->totalTensorSizeInBytes),
-            desc(*desc->AsPtr<DML_BUFFER_TENSOR_DESC>())
-        {
-            DAWN_UNREACHABLE();
-        }
-
-        TensorData() {}
-
-        ID3D12Resource* Get() const { return buffer; }
+        dawn_native::d3d12::Buffer* Get() const { return buffer.Get(); }
 
         size_t Size() const { return size; }
 
         size_t Offset() const { return offset; }
 
-        const dml::TensorDesc* Desc() const { return &desc; }
-
-        ID3D12Resource* buffer;
+        Ref<dawn_native::d3d12::Buffer> buffer;
         size_t size;
         size_t offset;
-        dml::TensorDesc desc;
     };
 
     struct Binding
     {
         explicit Binding(dml::Expression& expression, 
-                         ID3D12Resource * buffer,
+                         dawn_native::d3d12::Buffer * buffer,
                          size_t size,
                          size_t offset = 0)
             :   desc(expression.GetOutputDesc()),
                 data(buffer, size, offset)
         {}
-
-        Binding() = default;
 
         dml::TensorDesc desc;
         TensorData data;

@@ -11,18 +11,21 @@
 
 using namespace pydml;
 using Microsoft::WRL::ComPtr;
+using dawn_native::ErrorData;
 
-SVDescriptorHeap::SVDescriptorHeap(
-    ComPtr<ID3D12DescriptorHeap> heap,
-    uint64_t size)
-    : gpgmm::d3d12::Heap(heap, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, size),
-        m_Heap(std::move(heap)) {
-}
+#define DAWN_TRY_WITH_HRESULT(EXPR)                                                          \
+    {                                                                                        \
+        auto DAWN_LOCAL_VAR = EXPR;                                                          \
+        if (DAWN_UNLIKELY(DAWN_LOCAL_VAR.IsError())) {                                       \
+            return (E_FAIL);                                                                 \
+        }                                                                                    \
+    }                                                                                        \
+    for (;;)                                                                                 \
+    break
 
-Device::Device(ID3D12Device* d3d12Device, Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue, bool useDebugLayer)
+Device::Device(dawn_native::d3d12::Device* dawnDevice, bool useDebugLayer)
     : m_useGpu(true), m_useDebugLayer(useDebugLayer) {
-    m_d3d12Device = d3d12Device;
-    m_commandQueue = commandQueue;
+    m_dawnDevice = AcquireRef(dawnDevice);
 }
 
 HRESULT Device::Init()
@@ -31,62 +34,14 @@ HRESULT Device::Init()
     // Create D3D12 resources
     //
 
-    if (m_useDebugLayer)
-    {
-        ComPtr<ID3D12Debug> debugController;
-        if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-        {
-            debugController->EnableDebugLayer();
-        }
-    }
-
-    Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
-
-    // Get the hardware adapter used by the device.
-    if (dxgiAdapter == nullptr){
-        LUID adapterLUID = m_d3d12Device->GetAdapterLuid();
-        Microsoft::WRL::ComPtr<IDXGIFactory1> dxgiFactory;
-        ReturnIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
-        ComPtr<IDXGIFactory4> dxgiFactory4;
-        ReturnIfFailed(dxgiFactory.As(&dxgiFactory4));
-        dxgiFactory4->EnumAdapterByLuid(adapterLUID, IID_PPV_ARGS(&dxgiAdapter));
-    }
-
-    ReturnIfFailed(m_d3d12Device->CreateCommandAllocator(
-        D3D12_COMMAND_LIST_TYPE_COMPUTE,
-        IID_GRAPHICS_PPV_ARGS(m_commandAllocator.GetAddressOf())));
-
-    ReturnIfFailed(m_d3d12Device->CreateCommandList(
-        0, // node mask
-        D3D12_COMMAND_LIST_TYPE_COMPUTE,
-        m_commandAllocator.Get(),
-        nullptr, // initial pipeline state
-        IID_GRAPHICS_PPV_ARGS(m_commandList.GetAddressOf())));
-
-    D3D12_FEATURE_DATA_ARCHITECTURE arch = {};
-    ReturnIfFailed(m_d3d12Device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, &arch, sizeof(arch)));
-
-    D3D12_FEATURE_DATA_D3D12_OPTIONS options = {};
-    ReturnIfFailed(m_d3d12Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options)));
-
-    gpgmm::d3d12::ALLOCATOR_DESC allocatorDesc = {};
-    allocatorDesc.Adapter = dxgiAdapter;
-    allocatorDesc.Device = m_d3d12Device;
-    allocatorDesc.IsUMA = arch.UMA;
-    allocatorDesc.ResourceHeapTier = options.ResourceHeapTier;
-    ReturnIfFailed(gpgmm::d3d12::ResourceAllocator::CreateAllocator(allocatorDesc, &m_resourceAllocator));
-
-    m_residencyManager = m_resourceAllocator->GetResidencyManager();
-
     D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.NumDescriptors = 4; // One each for the input, output, persistent, and temporary resources
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    ReturnIfFailed(m_d3d12Device->CreateDescriptorHeap(&descriptorHeapDesc, IID_GRAPHICS_PPV_ARGS(m_clearUavDescriptorHeapCpu.GetAddressOf())));
+    ReturnIfFailed(m_dawnDevice->GetD3D12Device()->CreateDescriptorHeap(&descriptorHeapDesc, IID_GRAPHICS_PPV_ARGS(m_clearUavDescriptorHeapCpu.GetAddressOf())));
 
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    ReturnIfFailed(m_d3d12Device->CreateDescriptorHeap(&descriptorHeapDesc, IID_GRAPHICS_PPV_ARGS(m_clearUavDescriptorHeapGpu.GetAddressOf())));
-
+    ReturnIfFailed(m_dawnDevice->GetD3D12Device()->CreateDescriptorHeap(&descriptorHeapDesc, IID_GRAPHICS_PPV_ARGS(m_clearUavDescriptorHeapGpu.GetAddressOf())));
 
     // 
     // Create DML resources
@@ -95,9 +50,9 @@ HRESULT Device::Init()
     // DMLCreateDevice1 is supported since DML 1.1.0 and dml_resource_version specified by download_dml.py must exceed this version.
     // TODO: Consider relaxing DML_FEATURE_LEVEL_3_0 requirement to support more hardware.
     if (    !m_useDebugLayer 
-        ||  FAILED(DMLCreateDevice1(m_d3d12Device.Get(), DML_CREATE_DEVICE_FLAG_DEBUG, DML_FEATURE_LEVEL_3_0, IID_PPV_ARGS(&m_dmlDevice))))
+        ||  FAILED(DMLCreateDevice1(m_dawnDevice->GetD3D12Device(), DML_CREATE_DEVICE_FLAG_DEBUG, DML_FEATURE_LEVEL_3_0, IID_PPV_ARGS(&m_dmlDevice))))
     {
-        ReturnIfFailed(DMLCreateDevice1(m_d3d12Device.Get(), DML_CREATE_DEVICE_FLAG_NONE, DML_FEATURE_LEVEL_3_0, IID_PPV_ARGS(&m_dmlDevice)));
+        ReturnIfFailed(DMLCreateDevice1(m_dawnDevice->GetD3D12Device(), DML_CREATE_DEVICE_FLAG_NONE, DML_FEATURE_LEVEL_3_0, IID_PPV_ARGS(&m_dmlDevice)));
     }
 
     ReturnIfFailed(m_dmlDevice->CreateCommandRecorder(IID_PPV_ARGS(&m_commandRecorder)));
@@ -166,9 +121,7 @@ HRESULT Device::DispatchOperator(
 
     DML_BINDING_PROPERTIES bindingProps = op->GetBindingProperties();
 
-    ReturnIfFailed(EnsureUploadHeapSize(inputsResourceSize));
     ReturnIfFailed(EnsureCpuOrDefaultBufferSize(inputsResourceSize, m_inputsResource));
-    ReturnIfFailed(EnsureReadBackHeapSize(outputsResourceSize));
     ReturnIfFailed(EnsureCpuOrDefaultBufferSize(outputsResourceSize, m_outputsResource));
     ReturnIfFailed(EnsureDefaultBufferSize(bindingProps.TemporaryResourceSize, m_temporaryResource));
     ReturnIfFailed(EnsureDescriptorHeapSize(bindingProps.RequiredDescriptorCount));
@@ -178,7 +131,7 @@ HRESULT Device::DispatchOperator(
     {
         if (binding.sizeInBytes != 0)
         {
-            binding.buffer = m_inputsResource->GetResource();
+            binding.buffer = m_inputsResource.Get();
         }
     }
 
@@ -186,29 +139,33 @@ HRESULT Device::DispatchOperator(
     {
         if (binding.sizeInBytes != 0)
         {
-            binding.buffer = m_outputsResource->GetResource();
+            binding.buffer = m_outputsResource.Get();
         }
     }
 
     // The persistent resource should have already been initialized when the operator was initialized
-    assert(m_persistentResource->GetResource()->GetDesc().Width >= bindingProps.PersistentResourceSize);
+    assert(m_persistentResource.Get()->GetDesc().Width >= bindingProps.PersistentResourceSize);
 
     // Upload inputs for execution
     std::vector<ID3D12Resource*> buffersToClear =
     {
-        m_inputsResource->GetResource(),
-        m_temporaryResource->GetResource(),
-        m_outputsResource->GetResource()
+        m_inputsResource.Get(),
+        m_temporaryResource.Get(),
+        m_outputsResource.Get()
     };
-    
-    ReturnIfFailed(ClearGpuBuffers(buffersToClear));
+
+    dawn_native::d3d12::CommandRecordingContext* commandRecordingContext;
+    DAWN_TRY_ASSIGN_WITH_CLEANUP(commandRecordingContext, m_dawnDevice->GetPendingCommandContext(), {}, E_FAIL);
+    ID3D12GraphicsCommandList* commandList = commandRecordingContext->GetCommandList();
+
+    ReturnIfFailed(ClearGpuBuffers(commandList, buffersToClear));
 
     if (inputsResourceSize)
     {
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_inputsResource->GetResource(),
+                m_inputsResource.Get(),
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                 D3D12_RESOURCE_STATE_COPY_DEST)
             );
@@ -224,16 +181,19 @@ HRESULT Device::DispatchOperator(
             DmlBufferTensorDesc bufferDesc = *inputs[i]->desc.AsPtr<DML_BUFFER_TENSOR_DESC>();
             assert(inputs[i]->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
-            m_commandList->CopyBufferRegion(
-                m_inputsResource->GetResource(), inputBindings[i].offset,
-                inputs[i]->data.Get(), inputs[i]->data.Offset(),
+            auto inputBuffer = inputs[i]->data.Get();
+            inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopySrc);
+
+            commandList->CopyBufferRegion(
+                m_inputsResource.Get(), inputBindings[i].offset,
+                inputBuffer->GetD3D12Resource(), inputs[i]->data.Offset(),
                 inputs[i]->data.Size());
         }
 
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_inputsResource->GetResource(),
+                m_inputsResource.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
             );
@@ -244,8 +204,8 @@ HRESULT Device::DispatchOperator(
 
     DML_BINDING_TABLE_DESC bindingTableDesc = {};
     bindingTableDesc.Dispatchable = op;
-    bindingTableDesc.CPUDescriptorHandle = m_descriptorHeap->m_Heap->GetCPUDescriptorHandleForHeapStart();
-    bindingTableDesc.GPUDescriptorHandle = m_descriptorHeap->m_Heap->GetGPUDescriptorHandleForHeapStart();
+    bindingTableDesc.CPUDescriptorHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    bindingTableDesc.GPUDescriptorHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
     bindingTableDesc.SizeInDescriptors = bindingProps.RequiredDescriptorCount;
 
     ReturnIfFailed(m_bindingTable->Reset(&bindingTableDesc));
@@ -271,28 +231,28 @@ HRESULT Device::DispatchOperator(
     // Bind persistent/temporary resources
     if (bindingProps.PersistentResourceSize != 0)
     {
-        DML_BUFFER_BINDING persistentBinding = { m_persistentResource->GetResource(), 0, bindingProps.PersistentResourceSize };
+        DML_BUFFER_BINDING persistentBinding = { m_persistentResource.Get(), 0, bindingProps.PersistentResourceSize };
         auto bindingDesc = DML_BINDING_DESC { DML_BINDING_TYPE_BUFFER, &persistentBinding };
         m_bindingTable->BindPersistentResource(&bindingDesc);
     }
 
     if (bindingProps.TemporaryResourceSize != 0)
     {
-        DML_BUFFER_BINDING temporaryBinding = { m_temporaryResource->GetResource(), 0, bindingProps.TemporaryResourceSize };
+        DML_BUFFER_BINDING temporaryBinding = { m_temporaryResource.Get(), 0, bindingProps.TemporaryResourceSize };
         auto bindingDesc = DML_BINDING_DESC { DML_BINDING_TYPE_BUFFER, &temporaryBinding };
         m_bindingTable->BindTemporaryResource(&bindingDesc);
     }
 
     // Record and execute commands, and wait for completion
-    m_commandList->SetDescriptorHeaps(1, m_descriptorHeap->m_Heap.GetAddressOf());
-    m_commandRecorder->RecordDispatch(m_commandList.Get(), op, m_bindingTable.Get());
+    commandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+    m_commandRecorder->RecordDispatch(commandList, op, m_bindingTable.Get());
 
     if (outputsResourceSize != 0)
     {
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_outputsResource->GetResource(),
+                m_outputsResource.Get(),
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                 D3D12_RESOURCE_STATE_COPY_SOURCE)
             );
@@ -311,89 +271,30 @@ HRESULT Device::DispatchOperator(
             DmlBufferTensorDesc bufferDesc = *desc.AsPtr<DML_BUFFER_TENSOR_DESC>();
             assert(output->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
-            m_commandList->CopyBufferRegion(
-                output->data.Get(), output->data.Offset(),
-                m_outputsResource->GetResource(), outputBindings[i].offset, outputBindings[i].sizeInBytes);
+            auto outputBuffer = output->data.Get();
+            bool cleared;
+            DAWN_TRY_ASSIGN_WITH_CLEANUP(cleared,
+                            outputBuffer->EnsureDataInitializedAsDestination(
+                                commandRecordingContext, output->data.Offset(), outputBindings[i].sizeInBytes), {}, E_FAIL);
+            DAWN_UNUSED(cleared);
+            outputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopyDst);
+
+            commandList->CopyBufferRegion(
+                outputBuffer->GetD3D12Resource(), output->data.Offset(),
+                m_outputsResource.Get(), outputBindings[i].offset, outputBindings[i].sizeInBytes);
         }
 
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_outputsResource->GetResource(),
+                m_outputsResource.Get(),
                 D3D12_RESOURCE_STATE_COPY_SOURCE,
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
             );
     }
 
-    ReturnIfFailed(ExecuteCommandListAndWait());
-    return S_OK;
-}
-
-void Device::RecordOutputReadBack(uint64_t outputsResourceSize)
-{
-    // Copy output to readback heap
-    if (outputsResourceSize != 0)
-    {
-        m_commandList->ResourceBarrier(
-            1,
-            &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_outputsResource->GetResource(),
-                D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                D3D12_RESOURCE_STATE_COPY_SOURCE)
-            );
-
-        m_commandList->CopyBufferRegion(m_readbackHeap->GetResource(), 0, m_outputsResource->GetResource(), 0, outputsResourceSize);
-
-        m_commandList->ResourceBarrier(
-            1,
-            &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_outputsResource->GetResource(),
-                D3D12_RESOURCE_STATE_COPY_SOURCE,
-                D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-            );
-    }
-}
-
- HRESULT Device::DownloadFromReadBackHeap(
-    uint64_t outputsResourceSize, 
-    const std::vector<dml::Expression*>& outputs,
-    const std::vector<DmlBufferBinding>& outputBindings,
-    std::vector<pydml::TensorData*>& outputData
-    )
-{
-    if (outputsResourceSize != 0)
-    {
-        CD3DX12_RANGE readRange(0, static_cast<size_t>(outputsResourceSize));
-
-        byte* readbackHeapData = nullptr;
-
-        ReturnIfFailed(m_readbackHeap->Map(0, &readRange, reinterpret_cast<void**>(&readbackHeapData)));
-
-        for (size_t i = 0; i < outputs.size(); ++i)
-        {
-            auto output = outputs[i];
-
-            if (!output)
-            {
-                // This output tensor is optional (and null)
-                continue;
-            }
-
-            dml::TensorDesc desc = output->GetOutputDesc();
-            DmlBufferTensorDesc bufferDesc = *desc.AsPtr<DML_BUFFER_TENSOR_DESC>();
-
-            auto data = new TensorData(&desc);
-            void* dest = data->Get();
-            const void* src = readbackHeapData + outputBindings[i].offset;
-
-            memcpy(dest, src, static_cast<size_t>(bufferDesc.totalTensorSizeInBytes));
-
-            outputData.push_back(data);
-        }
-
-        m_readbackHeap->Unmap(0, nullptr);
-    }
-
+    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice.Get()));
+    DAWN_TRY_WITH_HRESULT(m_dawnDevice->NextSerial());
     return S_OK;
 }
 
@@ -439,7 +340,6 @@ HRESULT Device::InitializeOperator(
     uint64_t persistentResourceSize = op->GetBindingProperties().PersistentResourceSize;
     uint32_t descriptorHeapSize = m_operatorInitializer->GetBindingProperties().RequiredDescriptorCount;
 
-    ReturnIfFailed(EnsureUploadHeapSize(inputsResourceSize));
     ReturnIfFailed(EnsureCpuOrDefaultBufferSize(inputsResourceSize, m_inputsResource));
     ReturnIfFailed(EnsureDefaultBufferSize(temporaryResourceSize, m_temporaryResource));
     ReturnIfFailed(EnsureDefaultBufferSize(persistentResourceSize, m_persistentResource));
@@ -450,31 +350,30 @@ HRESULT Device::InitializeOperator(
     {
         if (binding.sizeInBytes != 0)
         {
-            binding.buffer = m_inputsResource->GetResource();
+            binding.buffer = m_inputsResource.Get();
         }
     }
 
     // Upload inputs for initialization
     std::vector<ID3D12Resource*> buffersToClear =
     {
-        m_inputsResource->GetResource(),
-        m_temporaryResource->GetResource(),
-        m_persistentResource->GetResource()
+        m_inputsResource.Get(),
+        m_temporaryResource.Get(),
+        m_persistentResource.Get()
     };
 
-    ReturnIfFailed(ClearGpuBuffers(buffersToClear));
+    dawn_native::d3d12::CommandRecordingContext* commandRecordingContext;
+    DAWN_TRY_ASSIGN_WITH_CLEANUP(commandRecordingContext, m_dawnDevice->GetPendingCommandContext(), {}, E_FAIL);
+    ID3D12GraphicsCommandList* commandList = commandRecordingContext->GetCommandList();
+
+    ReturnIfFailed(ClearGpuBuffers(commandList, buffersToClear));
 
     if (inputsResourceSize)
     {
-        // // Copy the data into the upload heap
-        // byte* uploadHeapData = nullptr;
-
-        // ReturnIfFailed(m_uploadHeap->Map(0, nullptr, reinterpret_cast<void**>(&uploadHeapData)));
-
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_inputsResource->GetResource(),
+                m_inputsResource.Get(),
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                 D3D12_RESOURCE_STATE_COPY_DEST)
             );
@@ -490,31 +389,22 @@ HRESULT Device::InitializeOperator(
             DmlBufferTensorDesc bufferDesc = *inputs[i]->desc.AsPtr<DML_BUFFER_TENSOR_DESC>();
             assert(inputs[i]->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
-            // memcpy(dest, src, static_cast<size_t>(bufferDesc.totalTensorSizeInBytes));
+            auto inputBuffer = inputs[i]->data.Get();
+            auto usage = inputBuffer->GetUsage();
+            inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopySrc);
 
-            m_commandList->CopyBufferRegion(
-                m_inputsResource->GetResource(), inputBinding.bindings[i].offset,
-                inputs[i]->data.Get(), inputs[i]->data.Offset(),
+            commandList->CopyBufferRegion(
+                m_inputsResource.Get(), inputBinding.bindings[i].offset,
+                inputBuffer->GetD3D12Resource(), inputs[i]->data.Offset(),
                 inputs[i]->data.Size());
+
+            inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, usage);
         }
 
-        // m_uploadHeap->Unmap(0, nullptr);
-
-        // Record the copy from the upload heap into the inputs resource
-        // m_commandList->ResourceBarrier(
-        //     1,
-        //     &CD3DX12_RESOURCE_BARRIER::Transition(
-        //         m_inputsResource->GetResource(),
-        //         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-        //         D3D12_RESOURCE_STATE_COPY_DEST)
-        //     );
-
-        // m_commandList->CopyBufferRegion(m_inputsResource->GetResource(), 0, m_uploadHeap->GetResource(), 0, inputsResourceSize);
-
-        m_commandList->ResourceBarrier(
+        commandList->ResourceBarrier(
             1,
             &CD3DX12_RESOURCE_BARRIER::Transition(
-                m_inputsResource->GetResource(),
+                m_inputsResource.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
                 );
@@ -525,8 +415,8 @@ HRESULT Device::InitializeOperator(
 
     DML_BINDING_TABLE_DESC bindingTableDesc = {};
     bindingTableDesc.Dispatchable = m_operatorInitializer.Get();
-    bindingTableDesc.CPUDescriptorHandle = m_descriptorHeap->m_Heap->GetCPUDescriptorHandleForHeapStart();
-    bindingTableDesc.GPUDescriptorHandle = m_descriptorHeap->m_Heap->GetGPUDescriptorHandleForHeapStart();
+    bindingTableDesc.CPUDescriptorHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    bindingTableDesc.GPUDescriptorHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
     bindingTableDesc.SizeInDescriptors = descriptorHeapSize;
 
     ReturnIfFailed(m_bindingTable->Reset(&bindingTableDesc));
@@ -536,66 +426,28 @@ HRESULT Device::InitializeOperator(
 
     if (persistentResourceSize != 0)
     {
-        DML_BUFFER_BINDING outputBinding = { m_persistentResource->GetResource(), 0, persistentResourceSize };
+        DML_BUFFER_BINDING outputBinding = { m_persistentResource.Get(), 0, persistentResourceSize };
         auto desc = DML_BINDING_DESC { DML_BINDING_TYPE_BUFFER, &outputBinding };
         m_bindingTable->BindOutputs(1, &desc);
     }
 
     if (temporaryResourceSize != 0)
     {
-        DML_BUFFER_BINDING temporaryBinding = { m_temporaryResource->GetResource(), 0, temporaryResourceSize };
+        DML_BUFFER_BINDING temporaryBinding = { m_temporaryResource.Get(), 0, temporaryResourceSize };
         auto desc = DML_BINDING_DESC { DML_BINDING_TYPE_BUFFER, &temporaryBinding };
         m_bindingTable->BindTemporaryResource(&desc);
     }
 
     // Record and execute commands, and wait for completion
-    m_commandList->SetDescriptorHeaps(1, m_descriptorHeap->m_Heap.GetAddressOf());
-    m_commandRecorder->RecordDispatch(m_commandList.Get(), m_operatorInitializer.Get(), m_bindingTable.Get());
-    ReturnIfFailed(ExecuteCommandListAndWait());
+    commandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+    m_commandRecorder->RecordDispatch(commandList, m_operatorInitializer.Get(), m_bindingTable.Get());
+    
+    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice.Get()));
+    DAWN_TRY_WITH_HRESULT(m_dawnDevice->NextSerial());
     return S_OK;
 }
 
-HRESULT Device::ExecuteCommandListAndWait()
-{
-    ReturnIfFailed(m_commandList->Close());
-
-    ID3D12CommandList* commandLists[] = { m_commandList.Get() };
-    if (m_residencyManager != nullptr){
-        gpgmm::d3d12::ResidencySet* residencySets[] = { &m_residencySet };
-        m_residencyManager->ExecuteCommandLists(m_commandQueue.Get(), commandLists, residencySets, ARRAYSIZE(commandLists));
-    } else {
-        m_commandQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
-    }
-
-    WaitForQueueToComplete(m_commandQueue.Get());
-
-    ReturnIfFailed(m_commandAllocator->Reset());
-    ReturnIfFailed(m_commandList->Reset(m_commandAllocator.Get(), nullptr));
-    ReturnIfFailed(m_residencySet.Reset());
-    return S_OK;
-}
-
-HRESULT Device::EnsureUploadHeapSize(uint64_t requestedSizeInBytes)
-{
-    uint64_t existingSize = m_uploadHeap ? m_uploadHeap->GetResource()->GetDesc().Width : 0;
-    uint64_t newSize = RoundUpToPow2(requestedSizeInBytes);     // ensures geometric growth
-    newSize = std::max(newSize, static_cast<uint64_t>(65536));  // Minimum size of 64k
-
-    if (newSize != existingSize)
-    {
-        m_uploadHeap = nullptr;
-        ReturnIfFailed(CreateResource(
-            m_resourceAllocator.Get(),
-            CD3DX12_RESOURCE_DESC::Buffer(newSize),
-            CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            m_uploadHeap
-            ));
-    }
-    return S_OK;
-}
-
-HRESULT Device::EnsureCpuOrDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer)
+HRESULT Device::EnsureCpuOrDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<ID3D12Resource>& buffer)
 {
     if (m_useCpuCustomHeapResources)
     {
@@ -608,93 +460,56 @@ HRESULT Device::EnsureCpuOrDefaultBufferSize(uint64_t requestedSizeInBytes, _Ino
     return S_OK;
 }
 
-HRESULT Device::EnsureCpuBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer)
+HRESULT Device::EnsureCpuBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<ID3D12Resource>& buffer)
 {
-    uint64_t existingSize = buffer ? buffer->GetResource()->GetDesc().Width : 0;
+    uint64_t existingSize = buffer ? buffer.Get()->GetDesc().Width : 0;
     uint64_t newSize = RoundUpToPow2(requestedSizeInBytes);     // ensures geometric growth
     newSize = std::max(newSize, static_cast<uint64_t>(65536));  // Minimum size of 64k
 
     if (newSize != existingSize)
     {
         buffer = nullptr;
-        ReturnIfFailed(CreateCpuCustomBuffer(m_resourceAllocator.Get(), newSize, buffer));
+        ReturnIfFailed(CreateCpuCustomBuffer(m_dawnDevice->GetD3D12Device(), newSize, buffer));
     }
-
-    UpdateResidencyIfNeeded(buffer.Get(), &m_residencySet);
     
     return S_OK;
 }
 
-HRESULT Device::EnsureDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<gpgmm::d3d12::ResourceAllocation>& buffer)
+HRESULT Device::EnsureDefaultBufferSize(uint64_t requestedSizeInBytes, _Inout_ ComPtr<ID3D12Resource>& buffer)
 {
-    uint64_t existingSize = buffer ? buffer->GetResource()->GetDesc().Width : 0;
+    uint64_t existingSize = buffer ? buffer.Get()->GetDesc().Width : 0;
     uint64_t newSize = RoundUpToPow2(requestedSizeInBytes);     // ensures geometric growth
     newSize = std::max(newSize, static_cast<uint64_t>(65536));  // Minimum size of 64k
 
     if (newSize != existingSize)
     {
         buffer = nullptr;
-        ReturnIfFailed(CreateDefaultBuffer(m_resourceAllocator.Get(), newSize, buffer));
+        ReturnIfFailed(CreateDefaultBuffer(m_dawnDevice->GetD3D12Device(), newSize, buffer));
     }
 
-    UpdateResidencyIfNeeded(buffer.Get(), &m_residencySet);
-    
     return S_OK;
 }
 
 HRESULT Device::EnsureDescriptorHeapSize(uint32_t requestedSizeInDescriptors)
 {
-    uint32_t existingSize = m_descriptorHeap ? m_descriptorHeap->m_Heap->GetDesc().NumDescriptors : 0;
+    uint32_t existingSize = m_descriptorHeap ? m_descriptorHeap->GetDesc().NumDescriptors : 0;
     uint32_t newSize = RoundUpToPow2(requestedSizeInDescriptors); // ensures geometric growth
 
     if (newSize != existingSize)
     {
-        if (m_descriptorHeap != nullptr && m_residencyManager != nullptr){
-            m_residencyManager->UnlockHeap(m_descriptorHeap.get());
-        }
-
         m_descriptorHeap = nullptr;
         
-        if (m_residencyManager != nullptr){
-            ReturnIfFailed(m_residencyManager->Evict(newSize, DXGI_MEMORY_SEGMENT_GROUP_LOCAL));
-        }
-
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         desc.NumDescriptors = newSize;
         desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-        ComPtr<ID3D12DescriptorHeap> d3d12DescriptorHeap;
-        ReturnIfFailed(m_d3d12Device->CreateDescriptorHeap(&desc, IID_GRAPHICS_PPV_ARGS(d3d12DescriptorHeap.GetAddressOf())));
-    
-        m_descriptorHeap = std::make_unique<SVDescriptorHeap>(std::move(d3d12DescriptorHeap), newSize);
-
-        if (m_residencyManager != nullptr){
-            ReturnIfFailed(m_residencyManager->InsertHeap(m_descriptorHeap.get()));
-            ReturnIfFailed(m_residencyManager->LockHeap(m_descriptorHeap.get()));
-        }
+        ReturnIfFailed(m_dawnDevice->GetD3D12Device()->CreateDescriptorHeap(&desc, IID_GRAPHICS_PPV_ARGS(m_descriptorHeap.GetAddressOf())));
     }
     return S_OK;
 }
 
-HRESULT Device::EnsureReadBackHeapSize(uint64_t requestedSizeInBytes)
-{
-    uint64_t existingSize = m_readbackHeap ? m_readbackHeap->GetResource()->GetDesc().Width : 0;
-    uint64_t newSize = RoundUpToPow2(requestedSizeInBytes); // ensures geometric growth
-    newSize = std::max(newSize, static_cast<uint64_t>(65536)); // Minimum size of 64k
-
-    if (newSize != existingSize)
-    {
-        m_readbackHeap = nullptr;
-        ReturnIfFailed(CreateReadBackBuffer(m_resourceAllocator.Get(), newSize, m_readbackHeap));
-    }
-
-    UpdateResidencyIfNeeded(m_readbackHeap.Get(), &m_residencySet);
-    
-    return S_OK;
-}
-
-HRESULT Device::ClearGpuBuffers(dml::Span<ID3D12Resource*> buffers)
+HRESULT Device::ClearGpuBuffers(ID3D12GraphicsCommandList* commandList, dml::Span<ID3D12Resource*> buffers)
 {
     static const uint32_t ClearValue = static_cast<uint32_t>(-1);
 
@@ -711,7 +526,7 @@ HRESULT Device::ClearGpuBuffers(dml::Span<ID3D12Resource*> buffers)
         }
 
         ReturnIfFailed(FillGpuBuffer(
-            m_commandList.Get(),
+            commandList,
             m_clearUavDescriptorHeapCpu.Get(),
             m_clearUavDescriptorHeapGpu.Get(),
             descriptorOffset,
@@ -721,7 +536,7 @@ HRESULT Device::ClearGpuBuffers(dml::Span<ID3D12Resource*> buffers)
         ++descriptorOffset;
     }
 
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(nullptr));
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(nullptr));
     return S_OK;
 }
 

@@ -17,7 +17,7 @@
 
 #include "dawn_native/GraphBuilder.h"
 
-namespace dawn_native { namespace dml {
+namespace dawn::native { namespace dml {
 
     class GraphBuilder : public GraphBuilderBase {
       public:
@@ -32,6 +32,6 @@ namespace dawn_native { namespace dml {
         virtual GraphBase* CreateGraphImpl() override;
     };
 
-}}  // namespace dawn_native::dml
+}}  // namespace dawn::native::dml
 
 #endif  // WEBNN_NATIVE_DML_GRAPH_BUILDER_DML_H_

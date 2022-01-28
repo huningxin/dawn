@@ -23,7 +23,7 @@
 #include "dawn_native/d3d12/DeviceD3D12.h"
 #include "dawn_native/dml/deps/src/precomp.h"
 
-namespace dawn_native { namespace dml {
+namespace dawn::native { namespace dml {
 
     namespace {
         enum TransposeType { NhwcToNchw, NchwToNhwc };
@@ -162,11 +162,7 @@ namespace dawn_native { namespace dml {
 
     Graph::Graph(DeviceBase* device) : GraphBase(device) {
         d3d12::Device* d3d12Device = reinterpret_cast<d3d12::Device*>(device);
-#if defined(_DEBUG)
-        mDevice.reset(new ::pydml::Device(d3d12Device->GetD3D12Device(), d3d12Device->GetCommandQueue(), true));
-#else
-        mDevice.reset(new ::pydml::Device(d3d12Device->GetD3D12Device(), d3d12Device->GetCommandQueue(), false));
-#endif
+        mDevice.reset(new ::pydml::Device(d3d12Device));
         mDevice->Init();
         mGraph.reset(new ::dml::Graph(mDevice->GetDevice()));
     }
@@ -180,12 +176,10 @@ namespace dawn_native { namespace dml {
                                         ::DML_TENSOR_FLAGS::DML_TENSOR_FLAG_OWNED_BY_DML,
                                         dmlTensorDims, ::dml::TensorPolicy::Default());
         ::dml::Expression dmlConstant =
-            ::dml::InputTensor(*mGraph, mBindings.size(), dmlTensorDesc);
-        ID3D12Resource* d3d12Resource = reinterpret_cast<d3d12::Buffer*>(buffer)->GetD3D12Resource();
+            ::dml::InputTensor(*mGraph, mInputBindings.size(), dmlTensorDesc);
         std::unique_ptr<::pydml::Binding> binding(
-            new ::pydml::Binding(dmlConstant, d3d12Resource, offset, size));
-        mBindings.push_back(std::move(binding));
-        mConstants.push_back(mBindings.back().get());
+            new ::pydml::Binding(dmlConstant, reinterpret_cast<d3d12::Buffer*>(buffer), offset, size));
+        mInputBindings.push_back(std::move(binding));
         return dmlConstant;
     }
 
@@ -220,11 +214,11 @@ namespace dawn_native { namespace dml {
         }
         ::dml::TensorDesc dmlTensorDesc(dmlTensorType, dmlTensorDims,
                                         ::dml::TensorPolicy::Default());
-        ::dml::Expression dmlInput = ::dml::InputTensor(*mGraph, mBindings.size(), dmlTensorDesc);
+        ::dml::Expression dmlInput = ::dml::InputTensor(*mGraph, mInputBindings.size(), dmlTensorDesc);
         mExpression.insert(std::make_pair(input->PrimaryOutput(), dmlInput));
         std::unique_ptr<::pydml::Binding> binding(new ::pydml::Binding(dmlInput, nullptr, 0));
-        mBindings.push_back(std::move(binding));
-        mInputs.insert(std::make_pair(input->GetName(), mBindings.back().get()));
+        mInputBindings.push_back(std::move(binding));
+        mInputs.insert(std::make_pair(input->GetName(), mInputBindings.back().get()));
         DAWN_ASSERT(CheckShape(dmlInput, input));
         return {};
     }
@@ -234,8 +228,8 @@ namespace dawn_native { namespace dml {
         ::dml::Expression dmlOutput = mExpression.at(output);
         mOutputExpressions.push_back(dmlOutput);
         std::unique_ptr<::pydml::Binding> binding(new ::pydml::Binding(dmlOutput, nullptr, 0));
-        mBindings.push_back(std::move(binding));
-        mOutputs.insert(std::make_pair(name, mBindings.back().get()));
+        mOutputBindings.push_back(std::move(binding));
+        mOutputs.insert(std::make_pair(name, mOutputBindings.back().get()));
         return {};
     }
 
@@ -309,15 +303,18 @@ namespace dawn_native { namespace dml {
         // e.g. DML_EXECUTION_FLAG_ALLOW_HALF_PRECISION_COMPUTATION
         mCompiledModel.reset(new pydml::CompiledModel(*(mGraph), DML_EXECUTION_FLAG_NONE, mOutputExpressions));
 
+        std::vector<pydml::Binding*> inputBindings;
+        for (auto& binding : mInputBindings) {
+            inputBindings.push_back(binding.get());
+        }
         std::lock_guard<std::mutex> lock(mMutex);
-        if (FAILED(mDevice->InitializeOperator(mCompiledModel->op.Get(), mConstants))) {
+        if (FAILED(mDevice->InitializeOperator(mCompiledModel->op.Get(), inputBindings))) {
             return DAWN_INTERNAL_ERROR("Failed to compile graph.");
         }
         return {};
     }
 
     void Graph::ComputeImpl(NamedResourcesBase* inputs, NamedResourcesBase* outputs) {
-        std::vector<pydml::Binding*> inputBindings;
         auto namedInputs = inputs->GetResources();
         for (auto& input : mInputs) {
             // All the inputs must be set.
@@ -328,19 +325,22 @@ namespace dawn_native { namespace dml {
 
             ::pydml::Binding* binding = input.second;
             auto& bufferView = namedInputs[input.first];
-            binding->data.buffer = reinterpret_cast<d3d12::Buffer*>(bufferView.resource)->GetD3D12Resource();
+            binding->data.buffer = AcquireRef(reinterpret_cast<d3d12::Buffer*>(bufferView.resource));
             binding->data.offset = bufferView.offset;
-            binding->data.size = bufferView.size;
-            inputBindings.push_back(binding);
+            binding->data.size = bufferView.size != 0 ? bufferView.size : bufferView.resource->GetSize();
+        }
+        std::vector<pydml::Binding*> inputBindings;
+        for (auto& binding : mInputBindings) {
+            inputBindings.push_back(binding.get());
         }
         std::vector<pydml::Binding*> outputBindings;
         auto namedOutputs = outputs->GetResources();
         for (auto& output : mOutputs) {
             ::pydml::Binding* binding = output.second;
             auto& bufferView = namedOutputs[output.first];
-            binding->data.buffer = reinterpret_cast<d3d12::Buffer*>(bufferView.resource)->GetD3D12Resource();
+            binding->data.buffer = AcquireRef(reinterpret_cast<d3d12::Buffer*>(bufferView.resource));
             binding->data.offset = bufferView.offset;
-            binding->data.size = bufferView.size;
+            binding->data.size = bufferView.size != 0 ? bufferView.size : bufferView.resource->GetSize();
             outputBindings.push_back(binding);
         }
         std::lock_guard<std::mutex> lock(mMutex);
@@ -349,4 +349,4 @@ namespace dawn_native { namespace dml {
         }
     }
 
-}}  // namespace dawn_native::dml
+}}  // namespace dawn::native::dml

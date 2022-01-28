@@ -36,7 +36,7 @@ namespace dawn::native { namespace op {
             mDescriptor.type = desc->type;
             mBuffer = AcquireRef(view->resource);
             mOffset = view->offset;
-            mSize = view->size;
+            mSize = view->size != 0 ? view->size : mBuffer->GetSize();
         }
         ~Constant() override = default;
 
