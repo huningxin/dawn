@@ -17,17 +17,6 @@
 #include <span>
 #endif
 
-// #include <Windows.h>
-// #include <d3d12.h>
-
-// // ToDo: dxgi isn't available in WSL.
-// #include <dxgi1_5.h>
-// #include <dxgidebug.h>
-
-// #include <initguid.h>
-// #include <wrl/client.h>
-// #include <wrl/implements.h>
-
 #include "dawn_native/d3d12/d3d12_platform.h"
 #include "dawn_native/d3d12/DeviceD3D12.h"
 #include "dawn_native/d3d12/BufferD3D12.h"
@@ -37,10 +26,10 @@
 
 #define DML_TARGET_VERSION_USE_LATEST 1
 #include <DirectML.h>
-#include <DirectMLX.h>
+#include "DirectMLX.h"
 
 #define IID_GRAPHICS_PPV_ARGS IID_PPV_ARGS
-#include "third_party/DirectML/Python/src/d3dx12.h"
+#include "d3dx12.h"
 #include "util.h"
 #include "model.h"
 #include "typeconvert.h"
