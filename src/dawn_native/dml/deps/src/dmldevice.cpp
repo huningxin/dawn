@@ -390,15 +390,12 @@ HRESULT Device::InitializeOperator(
             assert(inputs[i]->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
             auto inputBuffer = inputs[i]->data.Get();
-            auto usage = inputBuffer->GetUsage();
             inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopySrc);
 
             commandList->CopyBufferRegion(
                 m_inputsResource.Get(), inputBinding.bindings[i].offset,
                 inputBuffer->GetD3D12Resource(), inputs[i]->data.Offset(),
                 inputs[i]->data.Size());
-
-            inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, usage);
         }
 
         commandList->ResourceBarrier(
