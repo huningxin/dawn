@@ -26,6 +26,7 @@
 #include "dawn_native/NamedOperands.h"
 #include "dawn_native/Operand.h"
 #include "dawn_native/Operator.h"
+#include "dawn_native/ops/Binary.h"
 #include "dawn_native/ops/Constant.h"
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Unary.h"
@@ -76,8 +77,12 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Input(this, std::string(name), desc));
     }
 
-    OperandBase* GraphBuilderBase::APIRelu(OperandBase* input) {
-        VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kRelu, input));
+    OperandBase* GraphBuilderBase::APIAdd(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kAdd, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {
+        VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kRelu, x));
     }
 
     NamedOperandsBase* GraphBuilderBase::APICreateNamedOperands() {

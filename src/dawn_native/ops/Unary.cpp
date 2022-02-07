@@ -37,4 +37,4 @@ namespace dawn::native { namespace op {
         return {};
     }
 
-}}  // namespace webnn_native::op
+}}  // namespace dawn::native::op

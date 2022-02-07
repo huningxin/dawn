@@ -92,6 +92,113 @@ namespace dawn::native { namespace dml {
             return true;
         }
 
+        ::dml::TensorDimensions ExpandDimensions(const ::dml::TensorDimensions& dims, size_t rank) {
+            DAWN_ASSERT(rank >= dims.size());
+            ::dml::TensorDimensions newDims(rank, 1);
+            for (size_t i = 0; i < dims.size(); ++i) {
+                newDims[newDims.size() - i - 1] = dims[dims.size() - i - 1];
+            }
+            return newDims;
+        }
+
+        ::dml::TensorDimensions ShrinkDimensions(const ::dml::TensorDimensions& dims, size_t rank) {
+            DAWN_ASSERT(rank <= dims.size());
+            ::dml::TensorDimensions newDims(rank);
+            for (size_t i = 0; i < rank; ++i) {
+                newDims[newDims.size() - i - 1] = dims[dims.size() - i - 1];
+            }
+            return newDims;
+        }
+
+        // Strides are used to express broadcasting (by specifying a stride of 0) as well as
+        // padding. If Strides is not specified, each dimension in the tensor is considered to
+        // be contiguously packed, with no additional padding. The calculated strides refer to
+        // https://docs.microsoft.com/en-us/windows/win32/direct3d12/dml-helper-functions#calculatestrides
+        ::dml::TensorDimensions CalculateBroadcastStrides(::dml::TensorDimensions dims,
+                                                          std::vector<bool> broadcast = {}) {
+            size_t rank = dims.size();
+            if (broadcast.empty()) {
+                broadcast.resize(rank, false);
+            }
+            for (size_t i = 0; i < rank; ++i) {
+                if (broadcast[i]) {
+                    dims[i] = 1;
+                }
+            }
+            ::dml::TensorDimensions strides(rank);
+            strides[rank - 1] = broadcast[rank - 1] ? 0 : 1;
+            size_t elements = 1;
+            for (size_t i = 1; i < rank; i++) {
+                size_t j = dims.size() - i - 1;
+                elements *= dims[j + 1];
+                strides[j] = broadcast[j] ? 0 : elements;
+            }
+            return strides;
+        }
+
+        bool BroadcastDimensions(const ::dml::TensorDimensions& aDims,
+                                 const ::dml::TensorDimensions& bDims,
+                                 bool& aBroadcasted,
+                                 ::dml::TensorDimensions& aNewDims,
+                                 ::dml::TensorDimensions& aNewStrides,
+                                 bool& bBroadcasted,
+                                 ::dml::TensorDimensions& bNewDims,
+                                 ::dml::TensorDimensions& bNewStrides,
+                                 size_t skipAxis = 0) {
+            auto aRank = aDims.size();
+            auto bRank = bDims.size();
+            auto newRank = std::max(aRank, bRank);
+            aNewDims.resize(newRank);
+            aNewStrides.resize(newRank);
+            std::vector<bool> aBroadcast(newRank, false);
+            bNewDims.resize(newRank);
+            bNewStrides.resize(newRank);
+            std::vector<bool> bBroadcast(newRank, false);
+            if (newRank > aRank) {
+                aNewDims = ExpandDimensions(aDims, newRank);
+                aBroadcasted = true;
+            } else {
+                aNewDims = aDims;
+            }
+            if (newRank > bRank) {
+                bNewDims = ExpandDimensions(bDims, newRank);
+                bBroadcasted = true;
+            } else {
+                bNewDims = bDims;
+            }
+            for (size_t i = 0; i < newRank - skipAxis; i++) {
+                if (aNewDims[i] == 1 && bNewDims[i] != 1) {
+                    aNewDims[i] = bNewDims[i];
+                    aBroadcast[i] = true;
+                    aBroadcasted = true;
+                } else if (bNewDims[i] == 1 && aNewDims[i] != 1) {
+                    bNewDims[i] = aNewDims[i];
+                    bBroadcast[i] = true;
+                    bBroadcasted = true;
+                } else if (aNewDims[i] != bNewDims[i]) {
+                    return false;
+                }
+            }
+            aNewStrides = CalculateBroadcastStrides(aNewDims, aBroadcast);
+            bNewStrides = CalculateBroadcastStrides(bNewDims, bBroadcast);
+            return true;
+        }
+
+        std::string OpTypeToString(op::BinaryOpType type) {
+            if (type == op::BinaryOpType::kAdd) {
+                return "add";
+            } else if (type == op::BinaryOpType::kMul) {
+                return "mul";
+            } else if (type == op::BinaryOpType::kSub) {
+                return "sub";
+            } else if (type == op::BinaryOpType::kDiv) {
+                return "div";
+            } else if (type == op::BinaryOpType::kMatMul) {
+                return "matmul";
+            }
+            return std::to_string(type);
+        }
+
         std::string OpTypeToString(op::UnaryOpType type) {
             if (type == op::UnaryOpType::kRelu) {
                 return "relu";
@@ -178,7 +285,7 @@ namespace dawn::native { namespace dml {
         ::dml::Expression dmlConstant =
             ::dml::InputTensor(*mGraph, mInputBindings.size(), dmlTensorDesc);
         std::unique_ptr<::pydml::Binding> binding(
-            new ::pydml::Binding(dmlConstant, reinterpret_cast<d3d12::Buffer*>(buffer), offset, size));
+            new ::pydml::Binding(dmlConstant, reinterpret_cast<d3d12::Buffer*>(buffer), size, offset));
         mInputBindings.push_back(std::move(binding));
         return dmlConstant;
     }
@@ -230,6 +337,122 @@ namespace dawn::native { namespace dml {
         std::unique_ptr<::pydml::Binding> binding(new ::pydml::Binding(dmlOutput, nullptr, 0));
         mOutputBindings.push_back(std::move(binding));
         mOutputs.insert(std::make_pair(name, mOutputBindings.back().get()));
+        return {};
+    }
+
+    MaybeError Graph::AddBinary(const op::Binary* binary) {
+        DAWN_ASSERT(binary->Inputs().size() == 2);
+        DAWN_ASSERT(mExpression.find(binary->Inputs()[0].Get()) != mExpression.end());
+        ::dml::Expression a = mExpression.at(binary->Inputs()[0].Get());
+        DAWN_ASSERT(mExpression.find(binary->Inputs()[1].Get()) != mExpression.end());
+        ::dml::Expression b = mExpression.at(binary->Inputs()[1].Get());
+        ::dml::Expression c;
+        ::dml::TensorDimensions aDims = a.GetOutputDesc().sizes;
+        const size_t aRank = aDims.size();
+        ::dml::TensorDimensions bDims = b.GetOutputDesc().sizes;
+        const size_t bRank = bDims.size();
+        ::dml::TensorDimensions aNewDims, bNewDims;
+        ::dml::TensorDimensions aNewStrides, bNewStrides;
+        bool aDimsChanged = false, bDimsChanged = false;
+        size_t cRank = 0;
+        bool needBroadcast = false;
+        size_t broadcastSkipAxis = 0;
+
+        if (binary->GetType() == op::BinaryOpType::kMatMul) {
+            // DML GEMM requires inputs are either 4D or 5D. We use 4D.
+            if (aRank > 4 || bRank > 4) {
+                return DAWN_INTERNAL_ERROR("The size of input dimensions is greater than 4.");
+            }
+
+            if (aRank == 1 && bRank == 1) {
+                // If both a and b are 1-D, the operation is a vector dot-product,
+                // which produces a scalar output.
+                cRank = 1;
+            } else {
+                // The output is a N-D tensor whose rank is the maximum rank of the
+                // input tensors.
+                cRank = std::max(aRank, bRank);
+            }
+
+            if (aRank < 4) {
+                aDims = ExpandDimensions(aDims, 4);
+                aDimsChanged = true;
+                aNewDims = aDims;
+                aNewStrides = CalculateBroadcastStrides(aNewDims);
+            }
+
+            if (bRank < 4) {
+                if (bRank == 1) {
+                    // If b is 1-D, it is converted to a 2-D tensor by by appending a 1 to
+                    // its dimensions.
+                    bDims.push_back(1);
+                }
+                bDims = ExpandDimensions(bDims, 4);
+                bDimsChanged = true;
+                bNewDims = bDims;
+                bNewStrides = CalculateBroadcastStrides(bNewDims);
+            }
+
+            if (aRank > 2 || bRank > 2) {
+                // If either a or b is N-D, N > 2, it is treated as a stack of matrices
+                // with dimensions corresponding to the last two indices. The matrix
+                // multiplication will be broadcasted accordingly by following
+                // [numpy-broadcasting-rule].
+                needBroadcast = true;
+                broadcastSkipAxis = 2;
+            }
+        } else {
+            // The element-wise binary operation will be broadcasted according to
+            // [numpy-broadcasting-rule].
+            needBroadcast = true;
+            broadcastSkipAxis = 0;
+        }
+
+        if (needBroadcast) {
+            if (!BroadcastDimensions(aDims, bDims, aDimsChanged, aNewDims, aNewStrides,
+                                     bDimsChanged, bNewDims, bNewStrides, broadcastSkipAxis)) {
+                return DAWN_INTERNAL_ERROR("Failed to broadcast a and b.");
+            }
+        }
+
+        if (aDimsChanged) {
+            a = ::dml::Reinterpret(a, aNewDims, aNewStrides);
+        }
+        if (bDimsChanged) {
+            b = ::dml::Reinterpret(b, bNewDims, bNewStrides);
+        }
+
+        if (binary->GetType() == op::BinaryOpType::kMatMul) {
+            c = ::dml::Gemm(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kAdd) {
+            c = ::dml::Add(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kDiv) {
+            c = ::dml::Divide(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kMul) {
+            c = ::dml::Multiply(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kSub) {
+            c = ::dml::Subtract(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kMax) {
+            c = ::dml::Max(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kMin) {
+            c = ::dml::Min(a, b);
+        } else if (binary->GetType() == op::BinaryOpType::kPower) {
+            c = ::dml::Pow(a, b);
+        } else {
+            std::string errorMessage = std::string(" Binary op ") +
+                                       OpTypeToString(binary->GetType()) +
+                                       std::string(" is not implemented.");
+            return DAWN_UNIMPLEMENTED_ERROR(errorMessage);
+        }
+
+        // Reshape back according to c rank if needed.
+        ::dml::TensorDimensions cDims = c.GetOutputDesc().sizes;
+        if (cRank != 0 && cRank < cDims.size()) {
+            ::dml::TensorDimensions cNewDims = ShrinkDimensions(cDims, cRank);
+            c = ::dml::Reinterpret(c, cNewDims, ::dml::NullOpt);
+        }
+        mExpression.insert(std::make_pair(binary->PrimaryOutput(), c));
+        DAWN_ASSERT(CheckShape(c, binary));
         return {};
     }
 

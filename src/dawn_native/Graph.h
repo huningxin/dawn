@@ -57,6 +57,7 @@ namespace dawn::native {
         virtual MaybeError AddConstant(const op::Constant* constant);
         virtual MaybeError AddInput(const op::Input* input);
         virtual MaybeError AddOutput(const std::string& name, const OperandBase* output);
+        virtual MaybeError AddBinary(const op::Binary* binary);
         virtual MaybeError AddUnary(const op::Unary* unary);
         virtual MaybeError Finish();
         virtual MaybeError Compile();

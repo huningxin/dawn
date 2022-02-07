@@ -28,28 +28,27 @@ namespace dawn::native {
     }
 
     MaybeError GraphBase::AddConstant(const op::Constant* constant) {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::AddConstant";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("AddConstant");
     }
 
     MaybeError GraphBase::AddInput(const op::Input* input) {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::AddInput";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("AddInput");
     }
 
     MaybeError GraphBase::AddOutput(const std::string& name, const OperandBase* output) {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::AddOutput";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("AddOutput");
+    }
+
+    MaybeError GraphBase::AddBinary(const op::Binary* binary) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddBinary");
     }
 
     MaybeError GraphBase::AddUnary(const op::Unary* unary) {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::AddUnary";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("AddUnary");
     }
     
     MaybeError GraphBase::Finish() {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::Finish";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("Finish");
     }
 
     MaybeError GraphBase::Compile() {
@@ -57,8 +56,7 @@ namespace dawn::native {
     }
 
     MaybeError GraphBase::CompileImpl() {
-        dawn::ErrorLog() << "Unimplemented: GraphBase::CompileImpl";
-        return {};
+        return DAWN_UNIMPLEMENTED_ERROR("CompileImpl");
     }
 
     void GraphBase::ComputeImpl(NamedResourcesBase* inputs,

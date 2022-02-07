@@ -40,7 +40,8 @@ namespace dawn::native {
         // WebNN API
         OperandBase* APIInput(char const* name, OperandDescriptor const* desc);
         OperandBase* APIConstant(OperandDescriptor const* desc, BufferResourceView const* view);
-        OperandBase* APIRelu(OperandBase*);
+        OperandBase* APIAdd(OperandBase* a, OperandBase* b);
+        OperandBase* APIRelu(OperandBase* x);
         NamedOperandsBase* APICreateNamedOperands();
         GraphBase* APIBuild(NamedOperandsBase const* namedOperands);
 

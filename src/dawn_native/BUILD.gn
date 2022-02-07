@@ -350,6 +350,8 @@ source_set("dawn_native_sources") {
     "Operand.h",
     "Operator.cpp",
     "Operator.h",
+    "ops/Binary.cpp",
+    "ops/Binary.h",
     "ops/Constant.h",
     "ops/Input.h",
     "ops/Unary.cpp",
