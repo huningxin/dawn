@@ -55,7 +55,7 @@ namespace pydml
 
         HRESULT ClearGpuBuffers(ID3D12GraphicsCommandList* commandList, dml::Span<ID3D12Resource*> buffers);
 
-        Ref<dawn_native::d3d12::Device> m_dawnDevice;
+        dawn_native::d3d12::Device* m_dawnDevice;
 
         // GPU- and CPU-visible descriptor heaps used for ClearUnorderedAccessView
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_clearUavDescriptorHeapGpu;

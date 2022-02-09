@@ -28,17 +28,17 @@ namespace pydml
         TensorData(dawn_native::d3d12::Buffer* buffer,
                    size_t size,
                    size_t offset = 0) :
-            buffer(AcquireRef(buffer)),
+            buffer(buffer),
             size(size),
             offset(offset) {}
 
-        dawn_native::d3d12::Buffer* Get() const { return buffer.Get(); }
+        dawn_native::d3d12::Buffer* Get() const { return buffer; }
 
         size_t Size() const { return size; }
 
         size_t Offset() const { return offset; }
 
-        Ref<dawn_native::d3d12::Buffer> buffer;
+        dawn_native::d3d12::Buffer* buffer;
         size_t size;
         size_t offset;
     };

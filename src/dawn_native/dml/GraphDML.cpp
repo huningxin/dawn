@@ -548,7 +548,7 @@ namespace dawn::native { namespace dml {
 
             ::pydml::Binding* binding = input.second;
             auto& bufferView = namedInputs[input.first];
-            binding->data.buffer = AcquireRef(reinterpret_cast<d3d12::Buffer*>(bufferView.resource));
+            binding->data.buffer = reinterpret_cast<d3d12::Buffer*>(bufferView.resource);
             binding->data.offset = bufferView.offset;
             binding->data.size = bufferView.size != 0 ? bufferView.size : bufferView.resource->GetSize();
         }
@@ -561,7 +561,7 @@ namespace dawn::native { namespace dml {
         for (auto& output : mOutputs) {
             ::pydml::Binding* binding = output.second;
             auto& bufferView = namedOutputs[output.first];
-            binding->data.buffer = AcquireRef(reinterpret_cast<d3d12::Buffer*>(bufferView.resource));
+            binding->data.buffer = reinterpret_cast<d3d12::Buffer*>(bufferView.resource);
             binding->data.offset = bufferView.offset;
             binding->data.size = bufferView.size != 0 ? bufferView.size : bufferView.resource->GetSize();
             outputBindings.push_back(binding);

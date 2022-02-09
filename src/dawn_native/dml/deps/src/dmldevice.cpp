@@ -24,8 +24,7 @@ using dawn_native::ErrorData;
     break
 
 Device::Device(dawn_native::d3d12::Device* dawnDevice, bool useDebugLayer)
-    : m_useGpu(true), m_useDebugLayer(useDebugLayer) {
-    m_dawnDevice = AcquireRef(dawnDevice);
+    : m_dawnDevice(dawnDevice), m_useGpu(true), m_useDebugLayer(useDebugLayer) {
 }
 
 HRESULT Device::Init()
@@ -293,7 +292,7 @@ HRESULT Device::DispatchOperator(
             );
     }
 
-    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice.Get()));
+    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice));
     DAWN_TRY_WITH_HRESULT(m_dawnDevice->NextSerial());
     return S_OK;
 }
@@ -439,7 +438,7 @@ HRESULT Device::InitializeOperator(
     commandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     m_commandRecorder->RecordDispatch(commandList, m_operatorInitializer.Get(), m_bindingTable.Get());
     
-    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice.Get()));
+    DAWN_TRY_WITH_HRESULT(commandRecordingContext->ExecuteCommandList(m_dawnDevice));
     DAWN_TRY_WITH_HRESULT(m_dawnDevice->NextSerial());
     return S_OK;
 }
