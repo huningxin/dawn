@@ -61,6 +61,7 @@ namespace dawn::native {
     class NamedResourcesBase;
     class OperandBase;
     class OperatorBase;
+    class FusionOperatorBase;
 
     template <typename T>
     class PerStage;

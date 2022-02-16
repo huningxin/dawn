@@ -19,6 +19,8 @@
 #include "dawn/{{api}}.h"
 #include "dawn/EnumClassBitmasks.h"
 
+#include <limits>
+
 namespace {{metadata.namespace}} {
 
     {% set c_prefix = metadata.c_prefix %}

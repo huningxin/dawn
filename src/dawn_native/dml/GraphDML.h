@@ -25,7 +25,10 @@
 #include "dawn_native/Operator.h"
 #include "dawn_native/dml/deps/src/precomp.h"
 #include "dawn_native/ops/Binary.h"
+#include "dawn_native/ops/Clamp.h"
 #include "dawn_native/ops/Constant.h"
+#include "dawn_native/ops/Conv2d.h"
+#include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Unary.h"
 
@@ -43,6 +46,7 @@ namespace dawn::native { namespace dml {
         virtual MaybeError AddInput(const op::Input* input) override;
         virtual MaybeError AddOutput(const std::string& name, const OperandBase* output) override;
         virtual MaybeError AddBinary(const op::Binary* binary) override;
+        virtual MaybeError AddConv2d(const op::Conv2d* conv2d) override;
         virtual MaybeError AddUnary(const op::Unary* unary) override;
         virtual MaybeError Finish() override;
 

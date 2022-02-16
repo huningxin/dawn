@@ -27,6 +27,7 @@
 #include "dawn_native/Operand.h"
 #include "dawn_native/Operator.h"
 #include "dawn_native/ops/Binary.h"
+#include "dawn_native/ops/Conv2d.h"
 #include "dawn_native/ops/Constant.h"
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Unary.h"
@@ -81,8 +82,18 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kAdd, a, b));
     }
 
+    OperandBase* GraphBuilderBase::APIConv2d(OperandBase* input,
+                                             OperandBase* filter,
+                                             Conv2dOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Conv2d(this, input, filter, options));
+    }
+
     OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {
         VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kRelu, x));
+    }
+
+    FusionOperatorBase* GraphBuilderBase::APIReluOperator() {
+        return new op::FusionUnary(this, FusionType::Relu);
     }
 
     NamedOperandsBase* GraphBuilderBase::APICreateNamedOperands() {

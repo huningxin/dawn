@@ -2777,6 +2777,9 @@
     "operand": {
         "category": "object"
     },
+    "fusion operator": {
+        "category": "object"
+    },
     "named operands": {
         "category": "object",
         "methods": [
@@ -2795,6 +2798,60 @@
             {"name": "resource", "type": "buffer"},
             {"name": "offset", "type": "uint64_t", "default": 0},
             {"name": "size", "type": "uint64_t"}
+        ]
+    },
+    "input operand layout": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "nchw"},
+            {"value": 1, "name": "nhwc"}
+        ]
+    },
+    "filter operand layout": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "oihw"},
+            {"value": 1, "name": "hwio"},
+            {"value": 2, "name": "ohwi"},
+            {"value": 3, "name": "ihwo"}
+        ]
+    },
+    "auto pad": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "explicit"},
+            {"value": 1, "name": "same upper"},
+            {"value": 2, "name": "same lower"}
+        ]
+    },
+    "clamp options": {
+        "category": "structure",
+        "members": [
+            {"name": "min value", "type": "float", "default": "std::numeric_limits<float>::lowest()"},
+            {"name": "max value", "type": "float", "default": "std::numeric_limits<float>::max()"}
+        ]
+    },
+    "conv2d options": {
+        "category": "structure",
+        "members": [
+            {"name": "padding count", "type": "uint32_t", "default": 0},
+            {"name": "padding", "type": "int32_t", "annotation": "const*", "length": "padding count"},
+            {"name": "strides count", "type": "uint32_t", "default": 0},
+            {"name": "strides", "type": "int32_t", "annotation": "const*", "length": "strides count"},
+            {"name": "dilations count", "type": "uint32_t", "default": 0},
+            {"name": "dilations", "type": "int32_t", "annotation": "const*", "length": "dilations count"},
+            {"name": "auto pad", "type": "auto pad", "default": "explicit"},
+            {"name": "groups", "type": "int32_t", "default": 1},
+            {"name": "input layout", "type": "input operand layout", "default": "nchw"},
+            {"name": "filter layout", "type": "filter operand layout", "default": "oihw"},
+            {"name": "bias", "type": "operand", "optional": true},
+            {"name": "activation", "type": "fusion operator", "optional": true}
+        ]
+    },
+    "leakyRelu options": {
+        "category": "structure",
+        "members": [
+              {"name": "alpha", "type": "float", "default": 0.01}
         ]
     },
     "graph builder": {
@@ -2825,11 +2882,24 @@
                 ]
             },
             {
+                "name": "conv2d",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "filter", "type": "operand"},
+                    {"name": "options", "type": "conv2d options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
                 "name": "relu",
                 "returns": "operand",
                 "args": [
                     {"name": "input", "type": "operand"}
                 ]
+            },
+            {
+                "name": "relu operator",
+                "returns": "fusion operator"
             },
             {
                 "name": "create named operands",

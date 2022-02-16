@@ -184,6 +184,168 @@ namespace dawn::native { namespace dml {
             return true;
         }
 
+        ::dml::TensorDimensions CalculateInputLayoutStrides(TransposeType transposeType,
+                                                            ::dml::TensorDimensions sizes) {
+            uint32_t nStride = 0, cStride = 0, hStride = 0, wStride = 0;
+            switch (transposeType) {
+                case NhwcToNchw:
+                    nStride = sizes[1] * sizes[2] * sizes[3];
+                    hStride = sizes[2] * sizes[3];
+                    wStride = sizes[3];
+                    cStride = 1;
+                    return {nStride, cStride, hStride, wStride};
+                case NchwToNhwc:
+                    nStride = sizes[1] * sizes[2] * sizes[3];
+                    cStride = sizes[2] * sizes[3];
+                    hStride = sizes[3];
+                    wStride = 1;
+                    return {nStride, hStride, wStride, cStride};
+                default:
+                    DAWN_ASSERT(0);
+                    break;
+            }
+        }
+
+        ::dml::Expression ReinterpretInputLayout(TransposeType transposeType,
+                                                 ::dml::Expression input) {
+            ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+            ::dml::TensorDimensions newInputDims;
+            newInputDims.resize(4);
+            switch (transposeType) {
+                case NhwcToNchw:
+                    newInputDims[0] = inputDims[0];
+                    newInputDims[1] = inputDims[3];
+                    newInputDims[2] = inputDims[1];
+                    newInputDims[3] = inputDims[2];
+                    input = ::dml::Reinterpret(input, newInputDims,
+                                               CalculateInputLayoutStrides(NhwcToNchw, inputDims));
+                    break;
+                case NchwToNhwc:
+                    newInputDims.resize(4);
+                    newInputDims[0] = inputDims[0];
+                    newInputDims[1] = inputDims[2];
+                    newInputDims[2] = inputDims[3];
+                    newInputDims[3] = inputDims[1];
+                    input = ::dml::Reinterpret(input, newInputDims,
+                                               CalculateInputLayoutStrides(NchwToNhwc, inputDims));
+                    break;
+                default:
+                    DAWN_ASSERT(0);
+                    break;
+            }
+            return input;
+        }
+
+        ::dml::TensorDimensions CalculateFilterLayoutStrides(wgpu::FilterOperandLayout filterLayout,
+                                                             ::dml::TensorDimensions sizes) {
+            uint32_t hStride = 0, wStride = 0, iStride = 0, oStride = 0;
+            switch (filterLayout) {
+                case wgpu::FilterOperandLayout::Hwio:
+                    hStride = sizes[1] * sizes[2] * sizes[3];
+                    wStride = sizes[2] * sizes[3];
+                    iStride = sizes[3];
+                    oStride = 1;
+                    break;
+                case wgpu::FilterOperandLayout::Ohwi:
+                    oStride = sizes[1] * sizes[2] * sizes[3];
+                    hStride = sizes[2] * sizes[3];
+                    wStride = sizes[3];
+                    iStride = 1;
+                    break;
+                case wgpu::FilterOperandLayout::Ihwo:
+                    iStride = sizes[1] * sizes[2] * sizes[3];
+                    hStride = sizes[2] * sizes[3];
+                    wStride = sizes[3];
+                    oStride = 1;
+                    break;
+                default:
+                    DAWN_ASSERT(0);
+                    break;
+            }
+            return {oStride, iStride, hStride, wStride};
+        }
+
+        ::dml::Expression ReinterpretFilterLayoutAsOihw(wgpu::FilterOperandLayout filterLayout,
+                                                        ::dml::Expression filter) {
+            ::dml::TensorDimensions filterDims = filter.GetOutputDesc().sizes;
+            ::dml::TensorDimensions newFilterDims;
+            newFilterDims.resize(4);
+            switch (filterLayout) {
+                case wgpu::FilterOperandLayout::Ohwi:
+                    newFilterDims.resize(4);
+                    newFilterDims[0] = filterDims[0];
+                    newFilterDims[1] = filterDims[3];
+                    newFilterDims[2] = filterDims[1];
+                    newFilterDims[3] = filterDims[2];
+                    filter = ::dml::Reinterpret(
+                        filter, newFilterDims,
+                        CalculateFilterLayoutStrides(wgpu::FilterOperandLayout::Ohwi, filterDims));
+                    break;
+                case wgpu::FilterOperandLayout::Hwio:
+                    newFilterDims[0] = filterDims[3];
+                    newFilterDims[1] = filterDims[2];
+                    newFilterDims[2] = filterDims[0];
+                    newFilterDims[3] = filterDims[1];
+                    filter = ::dml::Reinterpret(
+                        filter, newFilterDims,
+                        CalculateFilterLayoutStrides(wgpu::FilterOperandLayout::Hwio, filterDims));
+                    break;
+                case wgpu::FilterOperandLayout::Ihwo:
+                    newFilterDims[0] = filterDims[3];
+                    newFilterDims[1] = filterDims[0];
+                    newFilterDims[2] = filterDims[1];
+                    newFilterDims[3] = filterDims[2];
+                    filter = ::dml::Reinterpret(
+                        filter, newFilterDims,
+                        CalculateFilterLayoutStrides(wgpu::FilterOperandLayout::Ihwo, filterDims));
+                    break;
+                default:
+                    DAWN_ASSERT(0);
+                    break;
+            }
+            return filter;
+        }
+
+        ::dml::FusedActivation CreateFusedActivation(FusionOperatorBase* activation) {
+            ::dml::FusedActivation dmlActivation = ::dml::FusedActivation::None();
+            if (activation == nullptr) {
+                return dmlActivation;
+            }
+
+            switch (activation->GetFusionType()) {
+                case FusionType::Clamp:
+                    return dmlActivation;
+                case FusionType::Relu:
+                    dmlActivation = ::dml::FusedActivation::Relu();
+                    break;
+                case FusionType::Sigmoid:
+                    dmlActivation = ::dml::FusedActivation::Sigmoid();
+                    break;
+                case FusionType::LeakyRelu:
+                    dmlActivation = ::dml::FusedActivation::LeakyRelu(
+                        reinterpret_cast<op::FusionLeakyRelu*>(activation)->GetAlpha());
+                    break;
+                default:
+                    DAWN_ASSERT(0);
+            }
+            return dmlActivation;
+        }
+
+        ::dml::Expression EmulateFusedActivation(FusionOperatorBase* activation,
+                                                 ::dml::Expression& input) {
+            if (activation == nullptr) {
+                return input;
+            }
+            // HardSwish and Clamp are not supported for fusion, so we add them directly to emulate.
+            // Currently we implement Relu6 operator by Clamp.
+            auto type = activation->GetFusionType();
+            if (type == FusionType::Clamp) {
+                auto clamp = reinterpret_cast<const op::FusionClamp*>(activation);
+                return ::dml::Clip(input, clamp->GetMinValue(), clamp->GetMaxValue());
+            }
+            return input;
+        }
+
         std::string OpTypeToString(op::BinaryOpType type) {
             if (type == op::BinaryOpType::kAdd) {
                 return "add";
@@ -210,6 +372,50 @@ namespace dawn::native { namespace dml {
                 return "tanh";
             }
             return std::to_string(type);
+        }
+
+         template <typename T>
+        std::vector<const uint32_t> ImplicitPadding(const T* options,
+                                                    ::dml::Expression input,
+                                                    std::vector<uint32_t> filterSize) {
+            ::dml::Span<const uint32_t> strides(reinterpret_cast<const uint32_t*>(options->strides),
+                                                options->stridesCount);
+            ::dml::Span<const uint32_t> dilations(
+                reinterpret_cast<const uint32_t*>(options->dilations), options->dilationsCount);
+            ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+            // {paddingTop, paddingBottom, paddingLeft, paddingRight}
+            int32_t paddingTop, paddingBottom, paddingLeft, paddingRight;
+            dawn::native::op::ComputeImplicitPaddingForAutoPad(options->autoPad, dilations[0], inputDims[2],
+                                                               filterSize[0], strides[0], paddingTop,
+                                                               paddingBottom);
+            dawn::native::op::ComputeImplicitPaddingForAutoPad(options->autoPad, dilations[1], inputDims[3],
+                                                               filterSize[1], strides[1], paddingLeft,
+                                                               paddingRight);
+            return {static_cast<const uint32_t>(paddingTop),
+                    static_cast<const uint32_t>(paddingBottom),
+                    static_cast<const uint32_t>(paddingLeft),
+                    static_cast<const uint32_t>(paddingRight)};
+        }
+
+        template <typename T>
+        std::vector<const uint32_t> ImplicitPadding(const T* options,
+                                                    ::dml::Expression input,
+                                                    ::dml::Expression filter) {
+            ::dml::TensorDimensions filterDims = filter.GetOutputDesc().sizes;
+            return ImplicitPadding(options, input, {filterDims[2], filterDims[3]});
+        }
+
+        template <typename T>
+        std::vector<const uint32_t> ExplicitPadding(const T* options) {
+            uint32_t paddingTop = static_cast<uint32_t>(options->padding[0]);
+            uint32_t paddingBottom = static_cast<uint32_t>(options->padding[1]);
+            uint32_t paddingLeft = static_cast<uint32_t>(options->padding[2]);
+            uint32_t paddingRight = static_cast<uint32_t>(options->padding[3]);
+
+            return {static_cast<const uint32_t>(paddingTop),
+                    static_cast<const uint32_t>(paddingBottom),
+                    static_cast<const uint32_t>(paddingLeft),
+                    static_cast<const uint32_t>(paddingRight)};
         }
     }  // namespace
 
@@ -453,6 +659,68 @@ namespace dawn::native { namespace dml {
         }
         mExpression.insert(std::make_pair(binary->PrimaryOutput(), c));
         DAWN_ASSERT(CheckShape(c, binary));
+        return {};
+    }
+
+    MaybeError Graph::AddConv2d(const op::Conv2d* conv2d) {
+        auto inputsOperand = conv2d->Inputs();
+        DAWN_ASSERT(inputsOperand.size() == 2 || inputsOperand.size() == 3);
+        DAWN_ASSERT(mExpression.find(inputsOperand[0].Get()) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputsOperand[0].Get());
+        DAWN_ASSERT(mExpression.find(inputsOperand[1].Get()) != mExpression.end());
+        ::dml::Expression filter = mExpression.at(inputsOperand[1].Get());
+        const Conv2dOptions* options = conv2d->GetOptions();
+
+        if (options->inputLayout == wgpu::InputOperandLayout::Nhwc) {
+            input = ReinterpretInputLayout(NhwcToNchw, input);
+        }
+
+        if (options->filterLayout != wgpu::FilterOperandLayout::Oihw) {
+            filter = ReinterpretFilterLayoutAsOihw(options->filterLayout, filter);
+        }
+
+        // FIXME(nhu): strides, dilations, padding should be uint32_t
+        // need to fix the spec.
+        ::dml::Span<const uint32_t> strides(reinterpret_cast<const uint32_t*>(options->strides),
+                                            options->stridesCount);
+        ::dml::Span<const uint32_t> dilations(reinterpret_cast<const uint32_t*>(options->dilations),
+                                              options->dilationsCount);
+
+        auto padding = options->autoPad == wgpu::AutoPad::Explicit
+                           ? ExplicitPadding<Conv2dOptions>(options)
+                           : ImplicitPadding<Conv2dOptions>(options, input, filter);
+        // dml::Span just holds the refernces, need a variable to hold the memory.
+        std::vector<const uint32_t> startPaddingVector = {padding[0], padding[2]};
+        ::dml::Span<const uint32_t> startPadding(startPaddingVector);
+        std::vector<const uint32_t> endPaddingVector = {padding[1], padding[3]};
+        ::dml::Span<const uint32_t> endPadding(endPaddingVector);
+
+        ::dml::Optional<::dml::Expression> bias = ::dml::NullOpt;
+        if (options->bias != nullptr) {
+            DAWN_ASSERT(mExpression.find(inputsOperand[2].Get()) != mExpression.end());
+            bias = mExpression.at(inputsOperand[2].Get());
+            ::dml::TensorDimensions biasDims = bias->GetOutputDesc().sizes;
+            if (biasDims[0] != filter.GetOutputDesc().sizes[0] || biasDims.size() != 1) {
+                return DAWN_INTERNAL_ERROR(
+                    "The bias should be 1-D tensor with the shape of [output_channels].");
+            }
+            // Reshape bias from 1-D to 4-D for NCHW layout.
+            ::dml::TensorDimensions expandDimens = {1, biasDims[0], 1, 1};
+            bias = ::dml::Reinterpret(*bias, expandDimens, ::dml::NullOpt);
+        }
+        ::dml::Expression output = ::dml::Convolution(
+            input, filter, bias, DML_CONVOLUTION_MODE_CROSS_CORRELATION,
+            DML_CONVOLUTION_DIRECTION_FORWARD, strides, dilations, startPadding, endPadding,
+            // outPadding
+            {},
+            // groupCount
+            options->groups, CreateFusedActivation(options->activation));
+        if (options->inputLayout == wgpu::InputOperandLayout::Nhwc) {
+            output = ::dml::Identity(ReinterpretInputLayout(NchwToNhwc, output));
+        }
+        output = EmulateFusedActivation(options->activation, output);
+        mExpression.insert(std::make_pair(conv2d->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, conv2d));
         return {};
     }
 

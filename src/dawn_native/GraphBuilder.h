@@ -41,7 +41,9 @@ namespace dawn::native {
         OperandBase* APIInput(char const* name, OperandDescriptor const* desc);
         OperandBase* APIConstant(OperandDescriptor const* desc, BufferResourceView const* view);
         OperandBase* APIAdd(OperandBase* a, OperandBase* b);
+        OperandBase* APIConv2d(OperandBase*, OperandBase*, Conv2dOptions const* options);
         OperandBase* APIRelu(OperandBase* x);
+        FusionOperatorBase* APIReluOperator();
         NamedOperandsBase* APICreateNamedOperands();
         GraphBase* APIBuild(NamedOperandsBase const* namedOperands);
 

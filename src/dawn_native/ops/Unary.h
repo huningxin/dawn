@@ -15,6 +15,7 @@
 #ifndef WEBNN_NATIVE_OPS_UNARY_H_
 #define WEBNN_NATIVE_OPS_UNARY_H_
 
+#include "dawn_native/FusionOperator.h"
 #include "dawn_native/Graph.h"
 #include "dawn_native/Operand.h"
 #include "dawn_native/Operator.h"
@@ -56,6 +57,13 @@ namespace dawn::native { namespace op {
 
       private:
         UnaryOpType mOpType;
+    };
+
+    class FusionUnary : public FusionOperatorBase {
+      public:
+        FusionUnary(GraphBuilderBase* builder, FusionType type)
+            : FusionOperatorBase(builder, type) {
+        }
     };
 
 }}  // namespace webnn_native::op
