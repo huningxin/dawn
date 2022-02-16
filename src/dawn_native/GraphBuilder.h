@@ -41,7 +41,14 @@ namespace dawn::native {
         OperandBase* APIInput(char const* name, OperandDescriptor const* desc);
         OperandBase* APIConstant(OperandDescriptor const* desc, BufferResourceView const* view);
         OperandBase* APIAdd(OperandBase* a, OperandBase* b);
+        OperandBase* APIClamp(OperandBase*, ClampOptions const* options);
+        FusionOperatorBase* APIClampOperator(ClampOptions const* options);
         OperandBase* APIConv2d(OperandBase*, OperandBase*, Conv2dOptions const* options);
+        OperandBase* APILeakyRelu(OperandBase*, LeakyReluOptions const* options);
+        FusionOperatorBase* APILeakyReluOperator(LeakyReluOptions const* options);
+        OperandBase* APIReshape(OperandBase*, int32_t const*, size_t);
+        OperandBase* APISigmoid(OperandBase*);
+        FusionOperatorBase* APISigmoidOperator();
         OperandBase* APIRelu(OperandBase* x);
         FusionOperatorBase* APIReluOperator();
         NamedOperandsBase* APICreateNamedOperands();

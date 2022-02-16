@@ -30,6 +30,7 @@
 #include "dawn_native/ops/Conv2d.h"
 #include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
+#include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Unary.h"
 
 namespace dawn::native { namespace dml {
@@ -46,7 +47,9 @@ namespace dawn::native { namespace dml {
         virtual MaybeError AddInput(const op::Input* input) override;
         virtual MaybeError AddOutput(const std::string& name, const OperandBase* output) override;
         virtual MaybeError AddBinary(const op::Binary* binary) override;
+        virtual MaybeError AddClamp(const op::Clamp* clamp) override;
         virtual MaybeError AddConv2d(const op::Conv2d* conv2d) override;
+        virtual MaybeError AddReshape(const op::Reshape* reshape) override;
         virtual MaybeError AddUnary(const op::Unary* unary) override;
         virtual MaybeError Finish() override;
 

@@ -2882,12 +2882,42 @@
                 ]
             },
             {
+                "name": "clamp",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "clamp options", "annotation": "const*", "optional": true}
+                ]
+            },
+             {
+                "name": "clamp operator",
+                "returns": "fusion operator",
+                "args": [
+                      {"name": "options", "type": "clamp options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
                 "name": "conv2d",
                 "returns": "operand",
                 "args": [
                     {"name": "input", "type": "operand"},
                     {"name": "filter", "type": "operand"},
                     {"name": "options", "type": "conv2d options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "leaky relu",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "leakyRelu options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "leaky relu operator",
+                "returns": "fusion operator",
+                "args": [
+                      {"name": "options", "type": "leakyRelu options", "annotation": "const*", "optional": true}
                 ]
             },
             {
@@ -2899,6 +2929,26 @@
             },
             {
                 "name": "relu operator",
+                "returns": "fusion operator"
+            },
+            {
+                "name": "reshape",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "new shape", "type": "int32_t", "annotation": "const*", "length": "new shape count"},
+                    {"name": "new shape count", "type": "uint32_t"}
+                ]
+            },
+            {
+                "name": "sigmoid",
+                "returns": "operand",
+                "args": [
+                      {"name": "input", "type": "operand"}
+                ]
+            },
+            {
+                "name": "sigmoid operator",
                 "returns": "fusion operator"
             },
             {

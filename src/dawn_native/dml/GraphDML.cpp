@@ -662,6 +662,20 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddClamp(const op::Clamp* clamp) {
+        auto inputsOperand = clamp->Inputs();
+        DAWN_ASSERT(inputsOperand.size() == 1);
+        ::dml::Expression input = mExpression.at(inputsOperand[0].Get());
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+        if (inputDims.size() > DML_TENSOR_DIMENSION_COUNT_MAX1) {
+            return DAWN_INTERNAL_ERROR("The size of input dimensions is greater than max");
+        }
+        auto output = ::dml::Clip(input, clamp->GetMinValue(), clamp->GetMaxValue());
+        mExpression.insert(std::make_pair(clamp->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, clamp));
+        return {};
+    }
+
     MaybeError Graph::AddConv2d(const op::Conv2d* conv2d) {
         auto inputsOperand = conv2d->Inputs();
         DAWN_ASSERT(inputsOperand.size() == 2 || inputsOperand.size() == 3);
@@ -724,6 +738,48 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddReshape(const op::Reshape* reshape) {
+        DAWN_ASSERT(reshape->Inputs().size() == 1);
+        const OperandBase* inputOperand = reshape->Inputs()[0].Get();
+        DAWN_ASSERT(mExpression.find(inputOperand) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputOperand);
+        auto newShape = reshape->GetNewShape();
+        if (newShape.size() > DML_TENSOR_DIMENSION_COUNT_MAX) {
+            return DAWN_INTERNAL_ERROR("The size of new shape is not supported by DML.");
+        }
+        ::dml::TensorDimensions newSizes(newShape.size());
+        uint32_t outputElementCount = 1;
+        int32_t inferAxis = -1;
+
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+        uint32_t inputElementCount =
+            std::accumulate(inputDims.begin(), inputDims.end(), 1, std::multiplies<uint32_t>());
+
+        for (size_t i = 0; i < newShape.size(); ++i) {
+            if (newShape[i] == -1) {
+                if (inferAxis != -1) {
+                    return DAWN_VALIDATION_ERROR("New shape should contain only one -1 value.");
+                } else {
+                    inferAxis = i;
+                }
+            } else if (newShape[i] <= 0) {
+                return DAWN_VALIDATION_ERROR("Argument new shape is invalid");
+            } else {
+                newSizes[i] = newShape[i];
+                outputElementCount *= newSizes[i];
+            }
+        }
+
+        if (inferAxis != -1) {
+            newSizes[inferAxis] = inputElementCount / outputElementCount;
+        }
+
+        ::dml::Expression output = ::dml::Reinterpret(input, newSizes, ::dml::NullOpt);
+        mExpression.insert(std::make_pair(reshape->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, reshape));
+        return {};
+    }
+
     MaybeError Graph::AddUnary(const op::Unary* unary) {
         DAWN_ASSERT(unary->Inputs().size() == 1);
         const OperandBase* inputOperand = unary->Inputs()[0].Get();
@@ -753,6 +809,10 @@ namespace dawn::native { namespace dml {
                 break;
             case op::UnaryOpType::kLog:
                 output = ::dml::Log(input);
+                break;
+            case op::UnaryOpType::kLeakyRelu:
+                output = ::dml::ActivationLeakyRelu(
+                    input, reinterpret_cast<const op::LeakyRelu*>(unary)->GetAlpha());
                 break;
             case op::UnaryOpType::kRelu:
                 output = ::dml::ActivationRelu(input);
@@ -784,6 +844,14 @@ namespace dawn::native { namespace dml {
     MaybeError Graph::Finish() {
         if (mInputs.empty()) {
             return DAWN_VALIDATION_ERROR("Model inputs must be set.");
+        }
+        if (mOutputExpressions.size() == 1) {
+            auto outputExp = mOutputExpressions[0];
+            if (outputExp.Impl()->GetNode().type == ::dml::detail::NodeType::Reinterpret) {
+                // Deal with a graph with single reshape node.
+                // https://github.com/microsoft/DirectML/issues/71
+                mOutputExpressions[0] = ::dml::ActivationIdentity(outputExp);
+            }
         }
 
         return {};

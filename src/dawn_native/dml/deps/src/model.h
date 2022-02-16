@@ -49,10 +49,12 @@ namespace pydml
                          dawn_native::d3d12::Buffer * buffer,
                          size_t size,
                          size_t offset = 0)
-            :   desc(expression.GetOutputDesc()),
+            :   exp(expression),
+                desc(expression.GetOutputDesc()),
                 data(buffer, size, offset)
         {}
 
+        dml::Expression exp;
         dml::TensorDesc desc;
         TensorData data;
     };

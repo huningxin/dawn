@@ -27,9 +27,12 @@
 #include "dawn_native/Operand.h"
 #include "dawn_native/Operator.h"
 #include "dawn_native/ops/Binary.h"
+#include "dawn_native/ops/Clamp.h"
 #include "dawn_native/ops/Conv2d.h"
 #include "dawn_native/ops/Constant.h"
+#include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
+#include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Unary.h"
 
 #define WEBNN_VALIDATE(ptr, objectBase)                                  \
@@ -82,10 +85,26 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kAdd, a, b));
     }
 
+    OperandBase* GraphBuilderBase::APIClamp(OperandBase* input, ClampOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Clamp(this, input, options));
+    }
+
+    FusionOperatorBase* GraphBuilderBase::APIClampOperator(ClampOptions const* options) {
+        return new op::FusionClamp(this, options);
+    }
+
     OperandBase* GraphBuilderBase::APIConv2d(OperandBase* input,
                                              OperandBase* filter,
                                              Conv2dOptions const* options) {
         VALIDATE_FOR_OPERAND(new op::Conv2d(this, input, filter, options));
+    }
+
+    OperandBase* GraphBuilderBase::APILeakyRelu(OperandBase* input, LeakyReluOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::LeakyRelu(this, input, options));
+    }
+
+    FusionOperatorBase* GraphBuilderBase::APILeakyReluOperator(LeakyReluOptions const* options) {
+        return new op::FusionLeakyRelu(this, options);
     }
 
     OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {
@@ -94,6 +113,20 @@ namespace dawn::native {
 
     FusionOperatorBase* GraphBuilderBase::APIReluOperator() {
         return new op::FusionUnary(this, FusionType::Relu);
+    }
+
+    OperandBase* GraphBuilderBase::APIReshape(OperandBase* input,
+                                              int32_t const* new_shape,
+                                              size_t new_shape_count) {
+        VALIDATE_FOR_OPERAND(new op::Reshape(this, input, new_shape, new_shape_count));
+    }
+
+    OperandBase* GraphBuilderBase::APISigmoid(OperandBase* input) {
+        VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kSigmoid, input));
+    }
+
+    FusionOperatorBase* GraphBuilderBase::APISigmoidOperator() {
+        return new op::FusionUnary(this, FusionType::Sigmoid);
     }
 
     NamedOperandsBase* GraphBuilderBase::APICreateNamedOperands() {

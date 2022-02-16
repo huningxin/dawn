@@ -358,6 +358,8 @@ source_set("dawn_native_sources") {
     "ops/Constant.h",
     "ops/LeakyRelu.h",
     "ops/Input.h",
+    "ops/Reshape.cpp",
+    "ops/Reshape.h",
     "ops/Unary.cpp",
     "ops/Unary.h",
   ]

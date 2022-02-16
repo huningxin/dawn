@@ -51,8 +51,8 @@ namespace dawn::native {
         return DAWN_UNIMPLEMENTED_ERROR("AddConv2d");
     }
 
-    MaybeError GraphBase::AddLeakyRelu(const op::LeakyRelu* leakyRelu) {
-        return DAWN_UNIMPLEMENTED_ERROR("AddLeakyRelu");
+    MaybeError GraphBase::AddReshape(const op::Reshape* reshape) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddReshape");
     }
 
     MaybeError GraphBase::AddUnary(const op::Unary* unary) {
