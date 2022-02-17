@@ -30,6 +30,7 @@
 #include "dawn_native/ops/Clamp.h"
 #include "dawn_native/ops/Conv2d.h"
 #include "dawn_native/ops/Constant.h"
+#include "dawn_native/ops/Gemm.h"
 #include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Reshape.h"
@@ -99,12 +100,22 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Conv2d(this, input, filter, options));
     }
 
+    OperandBase* GraphBuilderBase::APIGemm(OperandBase* a,
+                                           OperandBase* b,
+                                           GemmOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Gemm(this, a, b, options));
+    }
+
     OperandBase* GraphBuilderBase::APILeakyRelu(OperandBase* input, LeakyReluOptions const* options) {
         VALIDATE_FOR_OPERAND(new op::LeakyRelu(this, input, options));
     }
 
     FusionOperatorBase* GraphBuilderBase::APILeakyReluOperator(LeakyReluOptions const* options) {
         return new op::FusionLeakyRelu(this, options);
+    }
+
+    OperandBase* GraphBuilderBase::APIMatmul(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kMatMul, a, b));
     }
 
     OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {

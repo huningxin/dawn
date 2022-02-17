@@ -2848,6 +2848,16 @@
             {"name": "activation", "type": "fusion operator", "optional": true}
         ]
     },
+    "gemm options": {
+        "category": "structure",
+        "members": [
+            {"name": "c", "type": "operand", "optional": true},
+            {"name": "alpha", "type": "float", "default": 1.0},
+            {"name": "beta", "type": "float", "default": 1.0},
+            {"name": "aTranspose", "type": "bool", "default": "false"},
+            {"name": "bTranspose", "type": "bool", "default": "false"}
+        ]
+    },
     "leakyRelu options": {
         "category": "structure",
         "members": [
@@ -2906,6 +2916,15 @@
                 ]
             },
             {
+                "name": "gemm",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"},
+                    {"name": "options", "type": "gemm options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
                 "name": "leaky relu",
                 "returns": "operand",
                 "args": [
@@ -2918,6 +2937,14 @@
                 "returns": "fusion operator",
                 "args": [
                       {"name": "options", "type": "leakyRelu options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "matmul",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
                 ]
             },
             {

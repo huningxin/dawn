@@ -356,6 +356,8 @@ source_set("dawn_native_sources") {
     "ops/Conv2d.cpp",
     "ops/Conv2d.h",
     "ops/Constant.h",
+    "ops/Gemm.cpp",
+    "ops/Gemm.h",
     "ops/LeakyRelu.h",
     "ops/Input.h",
     "ops/Reshape.cpp",

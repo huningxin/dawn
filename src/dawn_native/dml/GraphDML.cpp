@@ -738,6 +738,77 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddGemm(const op::Gemm* gemm) {
+        std::vector<uint32_t> outputDims;
+        outputDims.reserve(2);
+        auto inputs = gemm->Inputs();
+        DAWN_ASSERT(inputs.size() == 2 || inputs.size() == 3);
+        DAWN_ASSERT(mExpression.find(inputs[0].Get()) != mExpression.end());
+        ::dml::Expression a = mExpression.at(inputs[0].Get());
+        ::dml::TensorDimensions aDims = a.GetOutputDesc().sizes;
+        const GemmOptions* options = gemm->GetOptions();
+        outputDims.push_back(options->aTranspose ? aDims[1] : aDims[0]);
+        // The shape of a tensor is 2D definited in WebNN Spec, but DML only support 4D,
+        // so expand dimensions to 4D.
+        DAWN_ASSERT(aDims.size() == 2);
+        auto expandDims = ExpandDimensions(aDims, 4);
+        a = ::dml::Reinterpret(a, expandDims, ::dml::NullOpt);
+
+        DAWN_ASSERT(mExpression.find(inputs[1].Get()) != mExpression.end());
+        ::dml::Expression b = mExpression.at(inputs[1].Get());
+        ::dml::TensorDimensions bDims = b.GetOutputDesc().sizes;
+        outputDims.push_back(options->bTranspose ? bDims[0] : bDims[1]);
+        // The shape of b tensor is 2D definited in WebNN Spec, but DML only support 4D,
+        // so expand dimensions to 4D.
+        DAWN_ASSERT(bDims.size() == 2);
+        expandDims = ExpandDimensions(bDims, 4);
+        b = ::dml::Reinterpret(b, expandDims, ::dml::NullOpt);
+
+        // The operand c is optional.
+        ::dml::Optional<::dml::Expression> c = ::dml::NullOpt;
+        if (inputs.size() == 3) {
+            DAWN_ASSERT(mExpression.find(inputs[2].Get()) != mExpression.end());
+            c = mExpression.at(inputs[2].Get());
+            ::dml::TensorDimensions cDims = c->GetOutputDesc().sizes;
+            if (cDims.size() != 2) {
+                cDims = ExpandDimensions(cDims, 2);
+            }
+            // BroadCast the Shape of optional C to {1, 1, M, N } supported in DML.
+            std::vector<bool> broadcast(4, false);
+            for (size_t i = 0; i < 2; ++i) {
+                if (outputDims[i] != cDims[i]) {
+                    if (cDims[i] == 1) {
+                        broadcast[i + 2] = true;
+                        cDims[i] = outputDims[i];
+                    } else {
+                        return DAWN_INTERNAL_ERROR("The optional c can't be broadcast.");
+                    }
+                }
+            }
+            // The shape of c tensor is 2D definited in WebNN Spec, but DML only support 4D,
+            // so expand dimensions to 4D.
+            DAWN_ASSERT(cDims.size() == 2);
+            expandDims = ExpandDimensions(cDims, 4);
+            auto expandStrides = CalculateBroadcastStrides(expandDims, broadcast);
+            c = ::dml::Reinterpret(c->Impl(), expandDims, expandStrides);
+        }
+
+        DML_MATRIX_TRANSFORM aTranspose = gemm->GetOptions()->aTranspose
+                                              ? DML_MATRIX_TRANSFORM_TRANSPOSE
+                                              : DML_MATRIX_TRANSFORM_NONE;
+        DML_MATRIX_TRANSFORM bTranspose = gemm->GetOptions()->bTranspose
+                                              ? DML_MATRIX_TRANSFORM_TRANSPOSE
+                                              : DML_MATRIX_TRANSFORM_NONE;
+        ::dml::Expression output =
+            ::dml::Gemm(a, b, c, aTranspose, bTranspose, options->alpha, options->beta);
+        // Reshape back according to output rank.
+        auto shrinkDims = ShrinkDimensions(output.GetOutputDesc().sizes, 2);
+        output = ::dml::Reinterpret(output, shrinkDims, ::dml::NullOpt);
+        mExpression.insert(std::make_pair(gemm->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, gemm));
+        return {};
+    }
+
     MaybeError Graph::AddReshape(const op::Reshape* reshape) {
         DAWN_ASSERT(reshape->Inputs().size() == 1);
         const OperandBase* inputOperand = reshape->Inputs()[0].Get();

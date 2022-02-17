@@ -51,6 +51,10 @@ namespace dawn::native {
         return DAWN_UNIMPLEMENTED_ERROR("AddConv2d");
     }
 
+    MaybeError GraphBase::AddGemm(const op::Gemm* gemm) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddGemm");
+    }
+
     MaybeError GraphBase::AddReshape(const op::Reshape* reshape) {
         return DAWN_UNIMPLEMENTED_ERROR("AddReshape");
     }
