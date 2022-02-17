@@ -129,6 +129,10 @@ namespace dawn::native {
         return new op::FusionUnary(this, FusionType::Sigmoid);
     }
 
+    OperandBase* GraphBuilderBase::APISoftmax(OperandBase* input) {
+        VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kSoftmax, input));
+    }
+
     NamedOperandsBase* GraphBuilderBase::APICreateNamedOperands() {
         return new NamedOperandsBase();
     }

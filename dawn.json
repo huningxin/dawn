@@ -2952,6 +2952,13 @@
                 "returns": "fusion operator"
             },
             {
+                "name": "softmax",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"}
+                ]
+            },
+            {
                 "name": "create named operands",
                 "returns": "named operands"
             },
