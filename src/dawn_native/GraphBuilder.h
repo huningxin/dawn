@@ -48,6 +48,8 @@ namespace dawn::native {
         OperandBase* APILeakyRelu(OperandBase*, LeakyReluOptions const* options);
         FusionOperatorBase* APILeakyReluOperator(LeakyReluOptions const* options);
         OperandBase* APIMatmul(OperandBase* a, OperandBase* b);
+        OperandBase* APIAveragePool2d(OperandBase*, Pool2dOptions const* options);
+        OperandBase* APIMaxPool2d(OperandBase*, Pool2dOptions const* options);
         OperandBase* APIReshape(OperandBase*, int32_t const*, size_t);
         OperandBase* APISigmoid(OperandBase*);
         FusionOperatorBase* APISigmoidOperator();

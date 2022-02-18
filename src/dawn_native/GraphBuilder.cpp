@@ -33,6 +33,7 @@
 #include "dawn_native/ops/Gemm.h"
 #include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
+#include "dawn_native/ops/Pool2d.h"
 #include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Unary.h"
 
@@ -116,6 +117,14 @@ namespace dawn::native {
 
     OperandBase* GraphBuilderBase::APIMatmul(OperandBase* a, OperandBase* b) {
         VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kMatMul, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIAveragePool2d(OperandBase* input, Pool2dOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Pool2d(this, op::Pool2dType::kAveragePool2d, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIMaxPool2d(OperandBase* input, Pool2dOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Pool2d(this, op::Pool2dType::kMaxPool2d, input, options));
     }
 
     OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {

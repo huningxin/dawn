@@ -809,6 +809,62 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddPool2d(const op::Pool2d* pool2d) {
+        DAWN_ASSERT(pool2d->Inputs().size() == 1);
+        const OperandBase* inputOperand = pool2d->Inputs()[0].Get();
+        DAWN_ASSERT(mExpression.find(inputOperand) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputOperand);
+        const Pool2dOptions* options = pool2d->GetOptions();
+        if (options->layout == wgpu::InputOperandLayout::Nhwc) {
+            input = ReinterpretInputLayout(NhwcToNchw, input);
+        }
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+
+        ::dml::Span<const uint32_t> strides(reinterpret_cast<const uint32_t*>(options->strides),
+                                            options->stridesCount);
+        std::vector<std::uint32_t> windowSizesVector;
+        if (options->windowDimensions != nullptr) {
+            const uint32_t* windowDimensions =
+                reinterpret_cast<const uint32_t*>(options->windowDimensions);
+            windowSizesVector.assign(windowDimensions,
+                                     windowDimensions + options->windowDimensionsCount);
+        } else {
+            windowSizesVector = {inputDims[2], inputDims[3]};
+        }
+        ::dml::Span<const uint32_t> windowSizes(windowSizesVector);
+        ::dml::Span<const uint32_t> dilations(reinterpret_cast<const uint32_t*>(options->dilations),
+                                              options->dilationsCount);
+        auto padding = options->autoPad == wgpu::AutoPad::Explicit
+                           ? ExplicitPadding<Pool2dOptions>(options)
+                           : ImplicitPadding<Pool2dOptions>(options, input, windowSizesVector);
+        // dml::Span just holds the refernces, need a variable to hold the memory.
+        std::vector<const uint32_t> startPaddingVector = {padding[0], padding[2]};
+        ::dml::Span<const uint32_t> startPadding(startPaddingVector);
+        std::vector<const uint32_t> endPaddingVector = {padding[1], padding[3]};
+        ::dml::Span<const uint32_t> endPadding(endPaddingVector);
+        ::dml::Expression output;
+        if (pool2d->GetType() == op::Pool2dType::kAveragePool2d) {
+            if (dilations[0] != 1 || dilations[1] != 1) {
+                return DAWN_INTERNAL_ERROR("The dilations of average pool2d are not supported.");
+            }
+            output =
+                ::dml::AveragePooling(input, strides, windowSizes, startPadding, endPadding, false);
+        } else if (pool2d->GetType() == op::Pool2dType::kMaxPool2d) {
+            output = ::dml::MaxPooling(input, windowSizes, strides, startPadding, endPadding,
+                                       dilations, false)
+                         .values;
+        } else {
+            return DAWN_INTERNAL_ERROR("This pool2d type is not supported.");
+        }
+
+        if (options->layout == wgpu::InputOperandLayout::Nhwc) {
+            output = ::dml::Identity(ReinterpretInputLayout(NchwToNhwc, output));
+        }
+        mExpression.insert(std::make_pair(pool2d->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, pool2d));
+        return {};
+    }
+
     MaybeError Graph::AddReshape(const op::Reshape* reshape) {
         DAWN_ASSERT(reshape->Inputs().size() == 1);
         const OperandBase* inputOperand = reshape->Inputs()[0].Get();

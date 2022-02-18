@@ -61,6 +61,7 @@ namespace dawn::native {
         virtual MaybeError AddClamp(const op::Clamp* clamp);
         virtual MaybeError AddConv2d(const op::Conv2d* conv2d);
         virtual MaybeError AddGemm(const op::Gemm* gemm);
+        virtual MaybeError AddPool2d(const op::Pool2d* pool2d);
         virtual MaybeError AddReshape(const op::Reshape* reshape);
         virtual MaybeError AddUnary(const op::Unary* unary);
         virtual MaybeError Finish();

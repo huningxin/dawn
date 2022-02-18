@@ -2864,6 +2864,21 @@
               {"name": "alpha", "type": "float", "default": 0.01}
         ]
     },
+    "pool2d options": {
+        "category": "structure",
+        "members": [
+            {"name": "window dimensions count", "type": "uint32_t", "default": 0},
+            {"name": "window dimensions", "type": "int32_t", "annotation": "const*", "length": "window dimensions count"},
+            {"name": "padding count", "type": "uint32_t", "default": 0},
+            {"name": "padding", "type": "int32_t", "annotation": "const*", "length": "padding count"},
+            {"name": "strides count", "type": "uint32_t", "default": 0},
+            {"name": "strides", "type": "int32_t", "annotation": "const*", "length": "strides count"},
+            {"name": "dilations count", "type": "uint32_t", "default": 0},
+            {"name": "dilations", "type": "int32_t", "annotation": "const*", "length": "dilations count"},
+            {"name": "auto pad", "type": "auto pad", "default": "explicit"},
+            {"name": "layout", "type": "input operand layout", "default": "nchw"}
+        ]
+    },
     "graph builder": {
         "category": "object",
         "methods": [
@@ -2945,6 +2960,22 @@
                 "args": [
                     {"name": "a", "type": "operand"},
                     {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "average pool2d",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "pool2d options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "max pool2d",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "pool2d options", "annotation": "const*", "optional": true}
                 ]
             },
             {
