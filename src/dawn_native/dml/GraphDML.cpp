@@ -510,7 +510,9 @@ namespace dawn::native { namespace dml {
         auto dmlConstant = BindingConstant(dmlTensorType, dmlTensorDims, constant->GetBuffer(),
                                            constant->GetOffset(), constant->GetSize());
         mExpression.insert(std::make_pair(constant->PrimaryOutput(), dmlConstant));
-        mConstantSet.insert(constant->PrimaryOutput());
+        Ref<OperandBase> constantOperand = AcquireRef<OperandBase>(constant->PrimaryOutput());
+        constantOperand->Reference();
+        mConstants.push_back(std::move(constantOperand));
         DAWN_ASSERT(CheckShape(dmlConstant, constant));
         return {};
     }

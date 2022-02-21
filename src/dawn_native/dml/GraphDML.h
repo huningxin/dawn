@@ -75,7 +75,7 @@ namespace dawn::native { namespace dml {
         std::map<const OperandBase*, ::dml::Expression> mExpression;
         std::vector<std::unique_ptr<::pydml::Binding>> mInputBindings;
         std::vector<std::unique_ptr<::pydml::Binding>> mOutputBindings;
-        std::unordered_set<const OperandBase*> mConstantSet;
+        std::vector<Ref<OperandBase>> mConstants;
         std::vector<::dml::Expression> mOutputExpressions;
         std::map<std::string, ::pydml::Binding*> mInputs;
         std::map<std::string, ::pydml::Binding*> mOutputs;

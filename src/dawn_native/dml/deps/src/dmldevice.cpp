@@ -181,6 +181,7 @@ HRESULT Device::DispatchOperator(
             assert(inputs[i]->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
             auto inputBuffer = inputs[i]->data.Get();
+            DAWN_TRY_WITH_HRESULT(inputBuffer->EnsureDataInitialized(commandRecordingContext));
             inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopySrc);
 
             commandList->CopyBufferRegion(
@@ -389,6 +390,7 @@ HRESULT Device::InitializeOperator(
             assert(inputs[i]->data.Size() == bufferDesc.totalTensorSizeInBytes);
 
             auto inputBuffer = inputs[i]->data.Get();
+            DAWN_TRY_WITH_HRESULT(inputBuffer->EnsureDataInitialized(commandRecordingContext));
             inputBuffer->TrackUsageAndTransitionNow(commandRecordingContext, wgpu::BufferUsage::CopySrc);
 
             commandList->CopyBufferRegion(

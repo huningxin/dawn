@@ -35,6 +35,7 @@ namespace dawn::native { namespace op {
             mDescriptor.dimensionsCount = mDimensions.size();
             mDescriptor.type = desc->type;
             mBuffer = AcquireRef(view->resource);
+            mBuffer->Reference();
             mOffset = view->offset;
             mSize = view->size != 0 ? view->size : mBuffer->GetSize();
         }
