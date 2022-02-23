@@ -47,6 +47,10 @@ namespace dawn::native {
         return DAWN_UNIMPLEMENTED_ERROR("AddClamp");
     }
 
+    MaybeError GraphBase::AddConcat(const op::Concat* concat) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddConcat");
+    }
+
     MaybeError GraphBase::AddConv2d(const op::Conv2d* conv2d) {
         return DAWN_UNIMPLEMENTED_ERROR("AddConv2d");
     }

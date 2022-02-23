@@ -2922,6 +2922,15 @@
                 ]
             },
             {
+                "name": "concat",
+                "returns": "operand",
+                "args": [
+                    {"name": "inputs count", "type": "uint32_t"},
+                    {"name": "inputs", "type": "operand", "annotation": "const*", "length": "inputs count"},
+                    {"name": "axis", "type": "uint32_t"}
+                ]
+            },
+            {
                 "name": "conv2d",
                 "returns": "operand",
                 "args": [

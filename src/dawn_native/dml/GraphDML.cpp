@@ -678,6 +678,53 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddConcat(const op::Concat* concat) {
+        DAWN_ASSERT(concat->Inputs().size() >= 1);
+        auto inputsOperand = concat->Inputs();
+        std::vector<::dml::Expression> inputs;
+        inputs.reserve(inputsOperand.size());
+        const ::dml::Expression primary = mExpression.at(inputsOperand[0].Get());
+        const ::dml::TensorDimensions primaryDims = primary.GetOutputDesc().sizes;
+        if (primaryDims.size() > DML_TENSOR_DIMENSION_COUNT_MAX) {
+            return DAWN_INTERNAL_ERROR("The size of input dimensions is greater than max");
+        }
+
+        uint32_t axis = concat->GetAxis();
+        for (auto& inputOperand : inputsOperand) {
+            DAWN_ASSERT(mExpression.find(inputOperand.Get()) != mExpression.end());
+            ::dml::Expression input = mExpression.at(inputOperand.Get());
+            ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+            DAWN_ASSERT(inputDims.size() == primaryDims.size());
+            // All input tensors must have the same shape, except for the size of the dimension to
+            // concatenate on.
+            for (uint32_t i = 0; i < inputDims.size(); ++i) {
+                if (i == axis)
+                    continue;
+                if (inputDims[i] != primaryDims[i]) {
+                    return DAWN_VALIDATION_ERROR(
+                        "All input tensors must have the same shape except the axis.");
+                }
+            }
+            // Expand dimensions to DML_TENSOR_DIMENSION_COUNT_MAX if needed.
+            if (inputDims.size() < DML_TENSOR_DIMENSION_COUNT_MAX) {
+                auto newDims = ExpandDimensions(inputDims, DML_TENSOR_DIMENSION_COUNT_MAX);
+                axis = concat->GetAxis() + (DML_TENSOR_DIMENSION_COUNT_MAX - inputDims.size());
+                input = ::dml::Reinterpret(input, newDims, ::dml::NullOpt);
+            }
+            inputs.push_back(input);
+        }
+        ::dml::Expression output = ::dml::Join(inputs, axis);
+        ::dml::TensorDimensions outputDims = output.GetOutputDesc().sizes;
+        // Reshape back according to output rank if needed.
+        if (primaryDims.size() < outputDims.size()) {
+            auto dims = ShrinkDimensions(outputDims, primaryDims.size());
+            output = ::dml::Reinterpret(output, dims, ::dml::NullOpt);
+        }
+        mExpression.insert(std::make_pair(concat->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, concat));
+        return {};
+    }
+
     MaybeError Graph::AddConv2d(const op::Conv2d* conv2d) {
         auto inputsOperand = conv2d->Inputs();
         DAWN_ASSERT(inputsOperand.size() == 2 || inputsOperand.size() == 3);

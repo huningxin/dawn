@@ -28,6 +28,7 @@
 #include "dawn_native/Operator.h"
 #include "dawn_native/ops/Binary.h"
 #include "dawn_native/ops/Clamp.h"
+#include "dawn_native/ops/Concat.h"
 #include "dawn_native/ops/Conv2d.h"
 #include "dawn_native/ops/Constant.h"
 #include "dawn_native/ops/Gemm.h"
@@ -93,6 +94,17 @@ namespace dawn::native {
 
     FusionOperatorBase* GraphBuilderBase::APIClampOperator(ClampOptions const* options) {
         return new op::FusionClamp(this, options);
+    }
+
+    OperandBase* GraphBuilderBase::APIConcat(uint32_t inputsCount,
+                                             OperandBase* const* inputs,
+                                             uint32_t axis) {
+        std::vector<Ref<OperandBase>> operandInputs;
+        operandInputs.reserve(inputsCount);
+        for (uint32_t i = 0; i < inputsCount; ++i) {
+            operandInputs.push_back(inputs[i]);
+        }
+        VALIDATE_FOR_OPERAND(new op::Concat(this, std::move(operandInputs), axis));
     }
 
     OperandBase* GraphBuilderBase::APIConv2d(OperandBase* input,

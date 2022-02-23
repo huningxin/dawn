@@ -43,6 +43,7 @@ namespace dawn::native {
         OperandBase* APIAdd(OperandBase* a, OperandBase* b);
         OperandBase* APIClamp(OperandBase*, ClampOptions const* options);
         FusionOperatorBase* APIClampOperator(ClampOptions const* options);
+        OperandBase* APIConcat(uint32_t inputsCount, OperandBase* const* inputs, uint32_t axis);
         OperandBase* APIConv2d(OperandBase*, OperandBase*, Conv2dOptions const* options);
         OperandBase* APIGemm(OperandBase*, OperandBase*, GemmOptions const* options);
         OperandBase* APILeakyRelu(OperandBase*, LeakyReluOptions const* options);

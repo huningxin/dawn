@@ -353,6 +353,8 @@ source_set("dawn_native_sources") {
     "ops/Binary.cpp",
     "ops/Binary.h",
     "ops/Clamp.h",
+    "ops/Concat.cpp",
+    "ops/Concat.h",
     "ops/Conv2d.cpp",
     "ops/Conv2d.h",
     "ops/Constant.h",
