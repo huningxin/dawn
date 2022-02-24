@@ -26,6 +26,7 @@
 #include "dawn_native/NamedOperands.h"
 #include "dawn_native/Operand.h"
 #include "dawn_native/Operator.h"
+#include "dawn_native/ops/BatchNorm.h"
 #include "dawn_native/ops/Binary.h"
 #include "dawn_native/ops/Clamp.h"
 #include "dawn_native/ops/Concat.h"
@@ -34,6 +35,7 @@
 #include "dawn_native/ops/Gemm.h"
 #include "dawn_native/ops/LeakyRelu.h"
 #include "dawn_native/ops/Input.h"
+#include "dawn_native/ops/Pad.h"
 #include "dawn_native/ops/Pool2d.h"
 #include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Unary.h"
@@ -88,6 +90,37 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kAdd, a, b));
     }
 
+    OperandBase* GraphBuilderBase::APIDiv(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kDiv, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIMul(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kMul, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APISub(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kSub, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIMax(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kMax, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIMin(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kMin, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIPow(OperandBase* a, OperandBase* b) {
+        VALIDATE_FOR_OPERAND(new op::Binary(this, op::BinaryOpType::kPower, a, b));
+    }
+
+    OperandBase* GraphBuilderBase::APIBatchNorm(OperandBase* input,
+                                                OperandBase* mean,
+                                                OperandBase* variance,
+                                                BatchNormOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::BatchNorm(this, input, mean, variance, options));
+    }
+
     OperandBase* GraphBuilderBase::APIClamp(OperandBase* input, ClampOptions const* options) {
         VALIDATE_FOR_OPERAND(new op::Clamp(this, input, options));
     }
@@ -139,6 +172,13 @@ namespace dawn::native {
         VALIDATE_FOR_OPERAND(new op::Pool2d(this, op::Pool2dType::kMaxPool2d, input, options));
     }
 
+    OperandBase* GraphBuilderBase::APIPad(OperandBase* input,
+                                          uint32_t const* padding,
+                                          size_t padding_count,
+                                          PadOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Pad(this, input, padding, padding_count, options));
+    }
+
     OperandBase* GraphBuilderBase::APIRelu(OperandBase* x) {
         VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kRelu, x));
     }
@@ -171,41 +211,45 @@ namespace dawn::native {
 
     GraphBase* GraphBuilderBase::APIBuild(NamedOperandsBase const* namedOperands) {
         if (DAWN_UNLIKELY(this->IsError())) {
-            dawn::ErrorLog() << "This Graph object is an error";
-            return nullptr;
+            dawn::ErrorLog() << "This GraphBuilder object is an error";
+            return GraphBase::MakeError(GetDevice());
         }
 
         std::vector<const OperandBase*> outputs;
         if (namedOperands->GetRecords().empty()) {
             dawn::ErrorLog() << "The output named operands are empty.";
-            return nullptr;
+            return GraphBase::MakeError(GetDevice());
         }
         for (auto& namedOutput : namedOperands->GetRecords()) {
             outputs.push_back(namedOutput.second);
         }
         std::vector<const OperatorBase*> sorted_operands = TopologicalSort(outputs);
+        if (sorted_operands.empty()) {
+            dawn::ErrorLog() << "Failed to sort graph.";
+            return GraphBase::MakeError(GetDevice());
+        }
         Ref<GraphBase> graph = AcquireRef(CreateGraphImpl());
         for (auto& op : sorted_operands) {
             if (op->IsError() || GetDevice()->ConsumedError(op->AddToGraph(graph.Get()))) {
                 dawn::ErrorLog() << "Failed to add the operand when building graph.";
-                return nullptr;
+                return GraphBase::MakeError(GetDevice());
             }
         }
         for (auto& namedOutput : namedOperands->GetRecords()) {
             if (GetDevice()->ConsumedError(
                     graph->AddOutput(namedOutput.first, namedOutput.second))) {
                 dawn::ErrorLog() << "Failed to add output when building graph.";
-                return nullptr;
+                return GraphBase::MakeError(GetDevice());
             }
         }
         if (GetDevice()->ConsumedError(graph->Finish())) {
             dawn::ErrorLog() << "Failed to finish building graph.";
-            return nullptr;
+            return GraphBase::MakeError(GetDevice());
         }
 
         if (GetDevice()->ConsumedError(graph->Compile())) {
             dawn::ErrorLog() << "Failed to compile the graph.";
-            return nullptr;
+            return GraphBase::MakeError(GetDevice());
         }
 
         return graph.Detach();
@@ -236,10 +280,16 @@ namespace dawn::native {
         std::vector<const OperatorBase*> result;
 
         for (auto node : rootNodes) {
+            if (node->IsError()) {
+                return {};
+            }
             nodesToDo.push(const_cast<OperandBase*>(node)->Operator());
         }
         while (nodesToDo.size() > 0) {
             const OperatorBase* node = nodesToDo.top();
+            if (node->IsError()) {
+                return {};
+            }
             if (nodesDone.count(node) == 0) {
                 bool can_add = true;
                 for (auto& dep : node->Inputs()) {

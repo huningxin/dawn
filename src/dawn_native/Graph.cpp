@@ -23,8 +23,15 @@
 #include "dawn_native/NamedResources.h"
 
 namespace dawn::native {
+    // static
+    GraphBase* GraphBase::MakeError(DeviceBase* device) {
+        return new GraphBase(device, ObjectBase::kError);
+    }
 
     GraphBase::GraphBase(DeviceBase* device) : ObjectBase(device) {
+    }
+
+    GraphBase::GraphBase(DeviceBase* device, ObjectBase::ErrorTag tag) : ObjectBase(device, tag) {
     }
 
     MaybeError GraphBase::AddConstant(const op::Constant* constant) {
@@ -37,6 +44,10 @@ namespace dawn::native {
 
     MaybeError GraphBase::AddOutput(const std::string& name, const OperandBase* output) {
         return DAWN_UNIMPLEMENTED_ERROR("AddOutput");
+    }
+
+    MaybeError GraphBase::AddBatchNorm(const op::BatchNorm* batchNorm) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddBatchNorm");
     }
 
     MaybeError GraphBase::AddBinary(const op::Binary* binary) {
@@ -57,6 +68,10 @@ namespace dawn::native {
 
     MaybeError GraphBase::AddGemm(const op::Gemm* gemm) {
         return DAWN_UNIMPLEMENTED_ERROR("AddGemm");
+    }
+
+    MaybeError GraphBase::AddPad(const op::Pad* pad) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddPad");
     }
 
     MaybeError GraphBase::AddPool2d(const op::Pool2d* pool2d) {

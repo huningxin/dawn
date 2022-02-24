@@ -51,17 +51,21 @@ namespace dawn::native {
 
     class GraphBase : public ObjectBase {
       public:
+        static GraphBase* MakeError(DeviceBase* device);
+
         explicit GraphBase(DeviceBase* device);
         virtual ~GraphBase() = default;
 
         virtual MaybeError AddConstant(const op::Constant* constant);
         virtual MaybeError AddInput(const op::Input* input);
         virtual MaybeError AddOutput(const std::string& name, const OperandBase* output);
+        virtual MaybeError AddBatchNorm(const op::BatchNorm* batchNorm);
         virtual MaybeError AddBinary(const op::Binary* binary);
         virtual MaybeError AddClamp(const op::Clamp* clamp);
         virtual MaybeError AddConcat(const op::Concat* concat);
         virtual MaybeError AddConv2d(const op::Conv2d* conv2d);
         virtual MaybeError AddGemm(const op::Gemm* gemm);
+        virtual MaybeError AddPad(const op::Pad* pad);
         virtual MaybeError AddPool2d(const op::Pool2d* pool2d);
         virtual MaybeError AddReshape(const op::Reshape* reshape);
         virtual MaybeError AddUnary(const op::Unary* unary);
@@ -73,6 +77,7 @@ namespace dawn::native {
         NamedResourcesBase* APICreateNamedResources();
 
       private:
+        GraphBase(DeviceBase* device, ObjectBase::ErrorTag tag);
         virtual MaybeError CompileImpl();
         virtual void ComputeImpl(NamedResourcesBase* inputs,
                                  NamedResourcesBase* outputs);

@@ -41,6 +41,16 @@ namespace dawn::native {
         OperandBase* APIInput(char const* name, OperandDescriptor const* desc);
         OperandBase* APIConstant(OperandDescriptor const* desc, BufferResourceView const* view);
         OperandBase* APIAdd(OperandBase* a, OperandBase* b);
+        OperandBase* APIDiv(OperandBase* a, OperandBase* b);
+        OperandBase* APIMul(OperandBase* a, OperandBase* b);
+        OperandBase* APISub(OperandBase* a, OperandBase* b);
+        OperandBase* APIMax(OperandBase* a, OperandBase* b);
+        OperandBase* APIMin(OperandBase* a, OperandBase* b);
+        OperandBase* APIPow(OperandBase* a, OperandBase* b);
+        OperandBase* APIBatchNorm(OperandBase*,
+                                  OperandBase*,
+                                  OperandBase*,
+                                  BatchNormOptions const* options);
         OperandBase* APIClamp(OperandBase*, ClampOptions const* options);
         FusionOperatorBase* APIClampOperator(ClampOptions const* options);
         OperandBase* APIConcat(uint32_t inputsCount, OperandBase* const* inputs, uint32_t axis);
@@ -51,6 +61,7 @@ namespace dawn::native {
         OperandBase* APIMatmul(OperandBase* a, OperandBase* b);
         OperandBase* APIAveragePool2d(OperandBase*, Pool2dOptions const* options);
         OperandBase* APIMaxPool2d(OperandBase*, Pool2dOptions const* options);
+        OperandBase* APIPad(OperandBase*, uint32_t const*, size_t, PadOptions const* options);
         OperandBase* APIReshape(OperandBase*, int32_t const*, size_t);
         OperandBase* APISigmoid(OperandBase*);
         FusionOperatorBase* APISigmoidOperator();

@@ -548,6 +548,61 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddBatchNorm(const op::BatchNorm* batchNorm) {
+        auto inputs = batchNorm->Inputs();
+        // input
+        DAWN_ASSERT(inputs.size() == 3 || inputs.size() == 4 || inputs.size() == 5);
+        DAWN_ASSERT(mExpression.find(batchNorm->Inputs()[0].Get()) != mExpression.end());
+        ::dml::Expression input = mExpression.at(batchNorm->Inputs()[0].Get());
+        const BatchNormOptions* options = batchNorm->GetOptions();
+        // When input is a 4-D tensor of the "nchw" or "nhwc" layout, options.axis should be set to
+        // 1 or 3 respectively.
+        uint32_t axis = options->axis;
+        if (options->axis == 3) {
+            input = ReinterpretInputLayout(NhwcToNchw, input);
+            axis = 1;
+        }
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+
+        // Reshape 1D mean, variance, scale, bias to 4D with setting 1 to automatically broadcast.
+        std::vector<::dml::Expression> expressions;
+        expressions.reserve(inputs.size());
+        for (size_t i = 1; i < inputs.size(); ++i) {
+            DAWN_ASSERT(mExpression.find(batchNorm->Inputs()[i].Get()) != mExpression.end());
+            ::dml::Expression expression = mExpression.at(batchNorm->Inputs()[i].Get());
+            ::dml::TensorDimensions dimensions = expression.GetOutputDesc().sizes;
+            DAWN_ASSERT(dimensions.size() == 1);
+            if (dimensions[0] != inputDims[axis]) {
+                return DAWN_INTERNAL_ERROR(
+                    "The 1-D tensor of the values whose length size is not equal to the size of "
+                    "the input dimension denoted by options.axis.");
+            }
+            // This tensor's dimensions should be { BatchCount, ChannelCount, Height,Width}.
+            // Set 1 to automatically broadcast those dimensions across the input.
+            ::dml::TensorDimensions expandDimens(4, 1);
+            expandDimens[axis] = dimensions[0];
+            expressions.push_back(::dml::Reinterpret(expression, expandDimens, ::dml::NullOpt));
+        }
+        if (options->scale == nullptr) {
+            // TODO: implement the constant uploading
+            return DAWN_VALIDATION_ERROR("Null scale is not implemented in DML backend.");
+        }
+        if (options->bias == nullptr) {
+            // TODO: implement the constant uploading
+            return DAWN_VALIDATION_ERROR("Null bias is not implemeented in DML backend.");
+        }
+        ::dml::Expression output = ::dml::BatchNormalization(
+            input, expressions[0], expressions[1], expressions[2], expressions[3], true,
+            options->epsilon, CreateFusedActivation(options->activation));
+        if (options->axis == 3) {
+            output = ReinterpretInputLayout(NchwToNhwc, output);
+        }
+        output = EmulateFusedActivation(options->activation, output);
+        mExpression.insert(std::make_pair(batchNorm->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, batchNorm));
+        return {};
+    }
+
     MaybeError Graph::AddBinary(const op::Binary* binary) {
         DAWN_ASSERT(binary->Inputs().size() == 2);
         DAWN_ASSERT(mExpression.find(binary->Inputs()[0].Get()) != mExpression.end());
@@ -855,6 +910,51 @@ namespace dawn::native { namespace dml {
         output = ::dml::Reinterpret(output, shrinkDims, ::dml::NullOpt);
         mExpression.insert(std::make_pair(gemm->PrimaryOutput(), output));
         DAWN_ASSERT(CheckShape(output, gemm));
+        return {};
+    }
+
+    MaybeError Graph::AddPad(const op::Pad* pad) {
+        auto inputsOperand = pad->Inputs();
+        DAWN_ASSERT(inputsOperand.size() == 1);
+        DAWN_ASSERT(mExpression.find(inputsOperand[0].Get()) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputsOperand[0].Get());
+
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+        uint32_t inputRank = inputDims.size();
+
+        const PadOptions* options = pad->GetOptions();
+        DML_PADDING_MODE paddingMode;
+        switch (options->mode) {
+            case wgpu::PaddingMode::Edge:
+                paddingMode = DML_PADDING_MODE_EDGE;
+                break;
+            case wgpu::PaddingMode::Reflection:
+                paddingMode = DML_PADDING_MODE_REFLECTION;
+                break;
+            case wgpu::PaddingMode::Symmetric:
+                paddingMode = DML_PADDING_MODE_SYMMETRIC;
+                break;
+            case wgpu::PaddingMode::Constant:
+                paddingMode = DML_PADDING_MODE_CONSTANT;
+                break;
+            default:
+                DAWN_ASSERT(0);
+        }
+        float paddingValue = options->value;
+
+        // dml::Span just holds the refernces, need a variable to hold the memory.
+        std::vector<uint32_t> startPaddingVector;
+        std::vector<uint32_t> endPaddingVector;
+        for (size_t i = 0; i < inputRank; ++i) {
+            startPaddingVector.push_back(pad->GetPadding()[2 * i]);
+            endPaddingVector.push_back(pad->GetPadding()[2 * i + 1]);
+        }
+        ::dml::Span<const uint32_t> startPadding(startPaddingVector);
+        ::dml::Span<const uint32_t> endPadding(endPaddingVector);
+        ::dml::Expression output =
+            ::dml::Padding(input, paddingMode, paddingValue, startPadding, endPadding);
+        mExpression.insert(std::make_pair(pad->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, pad));
         return {};
     }
 

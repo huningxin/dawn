@@ -2824,6 +2824,16 @@
             {"value": 2, "name": "same lower"}
         ]
     },
+    "batchNorm options": {
+        "category": "structure",
+        "members": [
+            {"name": "scale", "type": "operand", "optional": true},
+            {"name": "bias", "type": "operand", "optional": true},
+            {"name": "axis", "type": "uint32_t", "default": 1},
+            {"name": "epsilon", "type": "float", "default": 1e-5},
+            {"name": "activation", "type": "fusion operator", "optional": true}
+        ]
+    },
     "clamp options": {
         "category": "structure",
         "members": [
@@ -2879,6 +2889,22 @@
             {"name": "layout", "type": "input operand layout", "default": "nchw"}
         ]
     },
+    "padding mode": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "constant"},
+            {"value": 1, "name": "edge"},
+            {"value": 2, "name": "reflection"},
+            {"value": 3, "name": "symmetric"}
+        ]
+    },
+    "pad options": {
+        "category": "structure",
+        "members": [
+            {"name": "mode", "type": "padding mode", "default": "constant"},
+            {"name": "value", "type": "float", "default": 0}
+        ]
+    },
     "graph builder": {
         "category": "object",
         "methods": [
@@ -2904,6 +2930,64 @@
                 "args": [
                     {"name": "a", "type": "operand"},
                     {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "div",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "mul",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "sub",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "max",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "min",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "pow",
+                "returns": "operand",
+                "args": [
+                    {"name": "a", "type": "operand"},
+                    {"name": "b", "type": "operand"}
+                ]
+            },
+            {
+                "name": "batch norm",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "mean", "type": "operand"},
+                    {"name": "variance", "type": "operand"},
+                    {"name": "options", "type": "batchNorm options", "annotation": "const*", "optional": true}
                 ]
             },
             {
@@ -2985,6 +3069,16 @@
                 "args": [
                     {"name": "input", "type": "operand"},
                     {"name": "options", "type": "pool2d options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "pad",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "padding", "type": "uint32_t", "annotation": "const*", "length": "padding count"},
+                    {"name": "padding count", "type": "uint32_t"},
+                    {"name": "options", "type": "pad options", "annotation": "const*", "optional": true}
                 ]
             },
             {
