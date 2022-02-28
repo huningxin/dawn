@@ -68,6 +68,7 @@ namespace dawn::native {
         virtual MaybeError AddPad(const op::Pad* pad);
         virtual MaybeError AddPool2d(const op::Pool2d* pool2d);
         virtual MaybeError AddReshape(const op::Reshape* reshape);
+        virtual MaybeError AddTranspose(const op::Transpose* transpose);
         virtual MaybeError AddUnary(const op::Unary* unary);
         virtual MaybeError Finish();
         virtual MaybeError Compile();

@@ -2905,6 +2905,13 @@
             {"name": "value", "type": "float", "default": 0}
         ]
     },
+    "transpose options": {
+        "category": "structure",
+        "members": [
+            {"name": "permutation count", "type": "uint32_t", "default": 0},
+            {"name": "permutation", "type": "int32_t", "annotation": "const*", "length": "permutation count"}
+        ]
+    },
     "graph builder": {
         "category": "object",
         "methods": [
@@ -3117,6 +3124,14 @@
                 "returns": "operand",
                 "args": [
                     {"name": "input", "type": "operand"}
+                ]
+            },
+            {
+                "name": "transpose",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "transpose options", "annotation": "const*", "optional": true}
                 ]
             },
             {

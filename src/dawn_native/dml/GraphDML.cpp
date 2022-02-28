@@ -1056,6 +1056,46 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddTranspose(const op::Transpose* transpose) {
+        DAWN_ASSERT(transpose->Inputs().size() == 1);
+        const OperandBase* inputOperand = transpose->Inputs()[0].Get();
+        DAWN_ASSERT(mExpression.find(inputOperand) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputOperand);
+        std::vector<int32_t> permutation = transpose->GetPermutation();
+        if (permutation.size() > DML_TENSOR_DIMENSION_COUNT_MAX) {
+            return DAWN_INTERNAL_ERROR("The size of permutation is not supported by DML.");
+        }
+
+        // Transpose is implemented by dml::Reinterpret and dml::Identity
+        // See details at: https://github.com/microsoft/DirectML/issues/75
+        const size_t inputRank = input.GetOutputDesc().sizes.size();
+        ::dml::TensorDimensions inputStrides;
+        if (!input.GetOutputDesc().strides) {
+            inputStrides.resize(inputRank);
+            uint32_t stride = 1;
+            for (size_t i = inputStrides.size(); i-- > 0;) {
+                inputStrides[i] = stride;
+                stride *= input.GetOutputDesc().sizes[i];
+            }
+        } else {
+            inputStrides = input.GetOutputDesc().strides.value();
+        }
+
+        ::dml::TensorDimensions transposedSizes;
+        ::dml::TensorDimensions transposedStrides;
+        // Permute the shape and strides.
+        for (auto dimPermuted : permutation) {
+            transposedSizes.push_back(input.GetOutputDesc().sizes[dimPermuted]);
+            transposedStrides.push_back(inputStrides[dimPermuted]);
+        }
+
+        ::dml::Expression output =
+            ::dml::Identity(::dml::Reinterpret(input, transposedSizes, transposedStrides));
+        mExpression.insert(std::make_pair(transpose->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, transpose));
+        return {};
+    }
+
     MaybeError Graph::AddUnary(const op::Unary* unary) {
         DAWN_ASSERT(unary->Inputs().size() == 1);
         const OperandBase* inputOperand = unary->Inputs()[0].Get();

@@ -36,6 +36,7 @@
 #include "dawn_native/ops/Pad.h"
 #include "dawn_native/ops/Pool2d.h"
 #include "dawn_native/ops/Reshape.h"
+#include "dawn_native/ops/Transpose.h"
 #include "dawn_native/ops/Unary.h"
 
 namespace dawn::native { namespace dml {
@@ -60,6 +61,7 @@ namespace dawn::native { namespace dml {
         virtual MaybeError AddPad(const op::Pad* pad) override;
         virtual MaybeError AddPool2d(const op::Pool2d* pool2d) override;
         virtual MaybeError AddReshape(const op::Reshape* reshape) override;
+        virtual MaybeError AddTranspose(const op::Transpose* transpose) override;
         virtual MaybeError AddUnary(const op::Unary* unary) override;
         virtual MaybeError Finish() override;
 

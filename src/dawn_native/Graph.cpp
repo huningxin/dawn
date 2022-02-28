@@ -82,6 +82,10 @@ namespace dawn::native {
         return DAWN_UNIMPLEMENTED_ERROR("AddReshape");
     }
 
+    MaybeError GraphBase::AddTranspose(const op::Transpose* transpose) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddTranspose");
+    }
+
     MaybeError GraphBase::AddUnary(const op::Unary* unary) {
         return DAWN_UNIMPLEMENTED_ERROR("AddUnary");
     }

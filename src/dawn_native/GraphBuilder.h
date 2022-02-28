@@ -68,6 +68,7 @@ namespace dawn::native {
         OperandBase* APIRelu(OperandBase* x);
         FusionOperatorBase* APIReluOperator();
         OperandBase* APISoftmax(OperandBase*);
+        OperandBase* APITranspose(OperandBase*, TransposeOptions const* options);
         NamedOperandsBase* APICreateNamedOperands();
         GraphBase* APIBuild(NamedOperandsBase const* namedOperands);
 

@@ -38,6 +38,7 @@
 #include "dawn_native/ops/Pad.h"
 #include "dawn_native/ops/Pool2d.h"
 #include "dawn_native/ops/Reshape.h"
+#include "dawn_native/ops/Transpose.h"
 #include "dawn_native/ops/Unary.h"
 
 #define WEBNN_VALIDATE(ptr, objectBase)                                  \
@@ -203,6 +204,10 @@ namespace dawn::native {
 
     OperandBase* GraphBuilderBase::APISoftmax(OperandBase* input) {
         VALIDATE_FOR_OPERAND(new op::Unary(this, op::UnaryOpType::kSoftmax, input));
+    }
+
+    OperandBase* GraphBuilderBase::APITranspose(OperandBase* input, TransposeOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Transpose(this, input, options));
     }
 
     NamedOperandsBase* GraphBuilderBase::APICreateNamedOperands() {

@@ -370,6 +370,8 @@ source_set("dawn_native_sources") {
     "ops/Pool2d.h",
     "ops/Reshape.cpp",
     "ops/Reshape.h",
+    "ops/Transpose.cpp",
+    "ops/Transpose.h",
     "ops/Unary.cpp",
     "ops/Unary.h",
   ]
