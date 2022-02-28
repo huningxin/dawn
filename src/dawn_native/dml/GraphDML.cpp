@@ -744,7 +744,8 @@ namespace dawn::native { namespace dml {
             return DAWN_INTERNAL_ERROR("The size of input dimensions is greater than max");
         }
 
-        uint32_t axis = concat->GetAxis();
+        const uint32_t axis = concat->GetAxis();
+        uint32_t dmlAxis = axis;
         for (auto& inputOperand : inputsOperand) {
             DAWN_ASSERT(mExpression.find(inputOperand.Get()) != mExpression.end());
             ::dml::Expression input = mExpression.at(inputOperand.Get());
@@ -763,12 +764,12 @@ namespace dawn::native { namespace dml {
             // Expand dimensions to DML_TENSOR_DIMENSION_COUNT_MAX if needed.
             if (inputDims.size() < DML_TENSOR_DIMENSION_COUNT_MAX) {
                 auto newDims = ExpandDimensions(inputDims, DML_TENSOR_DIMENSION_COUNT_MAX);
-                axis = concat->GetAxis() + (DML_TENSOR_DIMENSION_COUNT_MAX - inputDims.size());
+                dmlAxis = concat->GetAxis() + (DML_TENSOR_DIMENSION_COUNT_MAX - inputDims.size());
                 input = ::dml::Reinterpret(input, newDims, ::dml::NullOpt);
             }
             inputs.push_back(input);
         }
-        ::dml::Expression output = ::dml::Join(inputs, axis);
+        ::dml::Expression output = ::dml::Join(inputs, dmlAxis);
         ::dml::TensorDimensions outputDims = output.GetOutputDesc().sizes;
         // Reshape back according to output rank if needed.
         if (primaryDims.size() < outputDims.size()) {
