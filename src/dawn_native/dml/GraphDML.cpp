@@ -1015,6 +1015,42 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddResample2d(const op::Resample2d* resample2d) {
+        DAWN_ASSERT(resample2d->Inputs().size() == 1);
+        const OperandBase* inputOperand = resample2d->Inputs()[0].Get();
+        DAWN_ASSERT(mExpression.find(inputOperand) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputOperand);
+        ::dml::TensorDimensions inputDims = input.GetOutputDesc().sizes;
+        const Resample2dOptions* options = resample2d->GetOptions();
+        // axes.
+        auto axes = resample2d->GetAxes();
+        // size.
+        auto outputShape = resample2d->GetOutputShape();
+        ::dml::TensorDimensions outputSizes(outputShape.begin(), outputShape.end());
+
+        DML_INTERPOLATION_MODE mode;
+        switch (options->mode) {
+            case wgpu::InterpolationMode::NearestNeighbor:
+                mode = DML_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+                break;
+            case wgpu::InterpolationMode::Linear:
+                mode = DML_INTERPOLATION_MODE_LINEAR;
+                break;
+            default:
+                DAWN_ASSERT(0);
+                break;
+        }
+
+        // If not specified, parameters are defaulted to the following values:
+        // Scales = computed by dividing the output sizes by the input sizes
+        // InputPixelOffsets = 0.5f for each dimension
+        // OutputPixelOffsets = -0.5f for each dimension
+        ::dml::Expression output = ::dml::Resample(input, outputSizes, mode, {}, {}, {});
+        mExpression.insert(std::make_pair(resample2d->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, resample2d));
+        return {};
+    }
+
     MaybeError Graph::AddReshape(const op::Reshape* reshape) {
         DAWN_ASSERT(reshape->Inputs().size() == 1);
         const OperandBase* inputOperand = reshape->Inputs()[0].Get();

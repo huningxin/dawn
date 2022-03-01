@@ -2824,6 +2824,13 @@
             {"value": 2, "name": "same lower"}
         ]
     },
+    "interpolation mode": {
+        "category": "enum",
+        "values": [
+            {"value": 0, "name": "nearest neighbor"},
+            {"value": 1, "name": "linear"}
+        ]
+    },
     "batchNorm options": {
         "category": "structure",
         "members": [
@@ -2903,6 +2910,18 @@
         "members": [
             {"name": "mode", "type": "padding mode", "default": "constant"},
             {"name": "value", "type": "float", "default": 0}
+        ]
+    },
+    "resample2d options": {
+        "category": "structure",
+        "members": [
+            {"name": "mode", "type": "interpolation mode", "default": "nearest neighbor"},
+            {"name": "scales count", "type": "uint32_t", "default": 0},
+            {"name": "scales", "type": "float", "annotation": "const*", "length": "scales count"},
+            {"name": "sizes count", "type": "uint32_t", "default": 0},
+            {"name": "sizes", "type": "int32_t", "annotation": "const*", "length": "sizes count"},
+            {"name": "axes count", "type": "uint32_t", "default": 0},
+            {"name": "axes", "type": "int32_t", "annotation": "const*", "length": "axes count"}
         ]
     },
     "transpose options": {
@@ -3098,6 +3117,14 @@
             {
                 "name": "relu operator",
                 "returns": "fusion operator"
+            },
+            {
+                "name": "resample2d",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "resample2d options", "annotation": "const*", "optional": true}
+                ]
             },
             {
                 "name": "reshape",

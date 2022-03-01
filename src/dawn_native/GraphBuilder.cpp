@@ -37,6 +37,7 @@
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Pad.h"
 #include "dawn_native/ops/Pool2d.h"
+#include "dawn_native/ops/Resample2d.h"
 #include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Transpose.h"
 #include "dawn_native/ops/Unary.h"
@@ -186,6 +187,11 @@ namespace dawn::native {
 
     FusionOperatorBase* GraphBuilderBase::APIReluOperator() {
         return new op::FusionUnary(this, FusionType::Relu);
+    }
+
+    OperandBase* GraphBuilderBase::APIResample2d(OperandBase* input,
+                                                 Resample2dOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Resample2d(this, input, options));
     }
 
     OperandBase* GraphBuilderBase::APIReshape(OperandBase* input,

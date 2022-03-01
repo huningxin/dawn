@@ -67,6 +67,7 @@ namespace dawn::native {
         FusionOperatorBase* APISigmoidOperator();
         OperandBase* APIRelu(OperandBase* x);
         FusionOperatorBase* APIReluOperator();
+        OperandBase* APIResample2d(OperandBase*, Resample2dOptions const* options);
         OperandBase* APISoftmax(OperandBase*);
         OperandBase* APITranspose(OperandBase*, TransposeOptions const* options);
         NamedOperandsBase* APICreateNamedOperands();

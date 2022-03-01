@@ -78,6 +78,10 @@ namespace dawn::native {
         return DAWN_UNIMPLEMENTED_ERROR("AddPool2d");
     }
 
+    MaybeError GraphBase::AddResample2d(const op::Resample2d* resample2d) {
+        return DAWN_UNIMPLEMENTED_ERROR("AddResample2d");
+    }
+
     MaybeError GraphBase::AddReshape(const op::Reshape* reshape) {
         return DAWN_UNIMPLEMENTED_ERROR("AddReshape");
     }
