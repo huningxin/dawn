@@ -594,7 +594,6 @@ namespace dml
             NodeOutput* CreateNodeOutput(NodeID node, uint32_t outputIndex, TensorDesc tensorDesc);
             GraphDesc GetGraphDesc(Span<const Expression> outputs) const;
 
-        private:
             Microsoft::WRL::ComPtr<IDMLDevice> m_device;
             TensorPolicy m_tensorPolicy;
             std::vector<InputNode> m_inputNodes;

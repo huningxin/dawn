@@ -1266,9 +1266,11 @@ namespace dawn::native { namespace dml {
         if (mInputs.empty()) {
             return DAWN_VALIDATION_ERROR("Model inputs must be set.");
         }
-        if (mExpression.size() == 1 && mOutputExpressions.size() == 1) {
-            auto outputExp = mOutputExpressions[0];
-            if (outputExp.Impl()->GetNode().type == ::dml::detail::NodeType::Reinterpret) {
+        for (auto outputExp : mOutputExpressions) {
+            auto builder = outputExp.Impl()->GetGraphBuilder();
+            auto node = outputExp.Impl()->GetNode();
+            if (node.type == ::dml::detail::NodeType::Reinterpret &&
+                builder->m_reinterpretNodes[node.index].input->GetNode().type == ::dml::detail::NodeType::Input) {
                 // Deal with a graph with single reshape node.
                 // https://github.com/microsoft/DirectML/issues/71
                 mOutputExpressions[0] = ::dml::ActivationIdentity(outputExp);
