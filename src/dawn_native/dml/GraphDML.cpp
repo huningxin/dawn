@@ -1015,6 +1015,74 @@ namespace dawn::native { namespace dml {
         return {};
     }
 
+    MaybeError Graph::AddReduce(const op::Reduce* reduce) {
+        DAWN_ASSERT(reduce->Inputs().size() == 1);
+        const OperandBase* inputOperand = reduce->Inputs()[0].Get();
+        DAWN_ASSERT(mExpression.find(inputOperand) != mExpression.end());
+        ::dml::Expression input = mExpression.at(inputOperand);
+        const ReduceOptions* options = reduce->GetOptions();
+        std::vector<std::uint32_t> axesVector;
+        size_t inputRank = input.GetOutputDesc().sizes.size();
+        for (size_t i = 0; i < options->axesCount; ++i) {
+            // Axes values must be in the range [0, InputTensor.DimensionCount - 1].
+            // The dimensions to reduce where -1 means the last dimension.
+            uint32_t axis = options->axes[i] == -1 ? inputRank - 1 : options->axes[i];
+            axesVector.push_back(axis);
+        }
+        ::dml::Span<const uint32_t> axes(axesVector);
+        ::dml::Expression output;
+        switch (reduce->GetType()) {
+            case op::ReduceType::kReduceL1:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_L1, axes);
+                break;
+            case op::ReduceType::kReduceL2:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_L2, axes);
+                break;
+            case op::ReduceType::kReduceMax:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_MAX, axes);
+                break;
+            case op::ReduceType::kReduceMean:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_AVERAGE, axes);
+                break;
+            case op::ReduceType::kReduceMin:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_MIN, axes);
+                break;
+            case op::ReduceType::kReduceProduct:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_MULTIPLY, axes);
+                break;
+            case op::ReduceType::kReduceSum:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_SUM, axes);
+                break;
+            case op::ReduceType::kReduceArgMax:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_ARGMAX, axes);
+                break;
+            case op::ReduceType::kReduceArgMin:
+                output = ::dml::Reduce(input, DML_REDUCE_FUNCTION_ARGMIN, axes);
+                break;
+            default:
+                return DAWN_INTERNAL_ERROR("The reduce op type isn't supported.");
+        }
+        ::dml::TensorDimensions outputDims = output.GetOutputDesc().sizes;
+        if (!options->keepDimensions) {
+            ::dml::TensorDimensions newDims;
+            for (size_t i = 0; i < outputDims.size(); ++i) {
+                // Reduce in DML always keep dimensions,
+                // manually remove the reduced dimension whose value is 1.
+                if (!(outputDims[i] == 1 && std::find(axes.begin(), axes.end(), i) != axes.end())) {
+                    newDims.push_back(outputDims[i]);
+                }
+            }
+            // DML doesn't support reinterpret a node for empty shape.
+            if (newDims.empty()) {
+                newDims.push_back(1);
+            }
+            output = ::dml::Reinterpret(output, newDims, ::dml::NullOpt);
+        }
+        mExpression.insert(std::make_pair(reduce->PrimaryOutput(), output));
+        DAWN_ASSERT(CheckShape(output, reduce));
+        return {};
+    }
+
     MaybeError Graph::AddResample2d(const op::Resample2d* resample2d) {
         DAWN_ASSERT(resample2d->Inputs().size() == 1);
         const OperandBase* inputOperand = resample2d->Inputs()[0].Get();
@@ -1198,7 +1266,7 @@ namespace dawn::native { namespace dml {
         if (mInputs.empty()) {
             return DAWN_VALIDATION_ERROR("Model inputs must be set.");
         }
-        if (mOutputExpressions.size() == 1) {
+        if (mExpression.size() == 1 && mOutputExpressions.size() == 1) {
             auto outputExp = mOutputExpressions[0];
             if (outputExp.Impl()->GetNode().type == ::dml::detail::NodeType::Reinterpret) {
                 // Deal with a graph with single reshape node.

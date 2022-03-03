@@ -37,6 +37,7 @@
 #include "dawn_native/ops/Input.h"
 #include "dawn_native/ops/Pad.h"
 #include "dawn_native/ops/Pool2d.h"
+#include "dawn_native/ops/Reduce.h"
 #include "dawn_native/ops/Resample2d.h"
 #include "dawn_native/ops/Reshape.h"
 #include "dawn_native/ops/Transpose.h"
@@ -187,6 +188,42 @@ namespace dawn::native {
 
     FusionOperatorBase* GraphBuilderBase::APIReluOperator() {
         return new op::FusionUnary(this, FusionType::Relu);
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceArgMax(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceArgMax, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceArgMin(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceArgMin, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceL2(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceL2, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceL1(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceL1, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceMax(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceMax, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceMean(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceMean, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceMin(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceMin, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceProduct(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceProduct, input, options));
+    }
+
+    OperandBase* GraphBuilderBase::APIReduceSum(OperandBase* input, ReduceOptions const* options) {
+        VALIDATE_FOR_OPERAND(new op::Reduce(this, op::ReduceType::kReduceSum, input, options));
     }
 
     OperandBase* GraphBuilderBase::APIResample2d(OperandBase* input,

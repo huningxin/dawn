@@ -368,6 +368,8 @@ source_set("dawn_native_sources") {
     "ops/Pad.h",
     "ops/Pool2d.cpp",
     "ops/Pool2d.h",
+    "ops/Reduce.cpp",
+    "ops/Reduce.h",
     "ops/Resample2d.cpp",
     "ops/Resample2d.h",
     "ops/Reshape.cpp",

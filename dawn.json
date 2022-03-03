@@ -2912,6 +2912,14 @@
             {"name": "value", "type": "float", "default": 0}
         ]
     },
+    "reduce options": {
+        "category": "structure",
+        "members": [
+            {"name": "axes count", "type": "uint32_t", "default": 0},
+            {"name": "axes", "type": "int32_t", "annotation": "const*", "length": "axes count"},
+            {"name": "keepDimensions", "type": "bool", "default": "false"}
+        ]
+    },
     "resample2d options": {
         "category": "structure",
         "members": [
@@ -3117,6 +3125,78 @@
             {
                 "name": "relu operator",
                 "returns": "fusion operator"
+            },
+            {
+                "name": "reduce arg max",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce arg min",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce l1",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce l2",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce max",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+                },
+            {
+                "name": "reduce mean",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce min",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce product",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
+            },
+            {
+                "name": "reduce sum",
+                "returns": "operand",
+                "args": [
+                    {"name": "input", "type": "operand"},
+                    {"name": "options", "type": "reduce options", "annotation": "const*", "optional": true}
+                ]
             },
             {
                 "name": "resample2d",

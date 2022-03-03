@@ -67,6 +67,15 @@ namespace dawn::native {
         FusionOperatorBase* APISigmoidOperator();
         OperandBase* APIRelu(OperandBase* x);
         FusionOperatorBase* APIReluOperator();
+        OperandBase* APIReduceArgMax(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceArgMin(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceL1(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceL2(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMax(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMean(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceMin(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceProduct(OperandBase*, ReduceOptions const* options);
+        OperandBase* APIReduceSum(OperandBase*, ReduceOptions const* options);
         OperandBase* APIResample2d(OperandBase*, Resample2dOptions const* options);
         OperandBase* APISoftmax(OperandBase*);
         OperandBase* APITranspose(OperandBase*, TransposeOptions const* options);
